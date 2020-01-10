@@ -1,0 +1,145 @@
+\title{CS 435 - Computational Photography}
+\author{
+            Assignment 1 - Pixel Operations
+}
+\date{}
+\documentclass[12pt]{article}
+\usepackage[margin=0.7in]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+
+
+\begin{document}
+\maketitle
+
+
+\section*{Introduction}
+In this first assignment we want to get you comfortable with importing and exporting images as well applying basic point-processing algorithms.   \\
+
+\noindent
+\textbf{Subsequent assignments will likely be far more involved, but we want to you getting your “hands dirty” as soon as possible!}\\
+
+\noindent
+In this assignment you will demonstrate your ability to:
+\begin{itemize}
+\item Obtain images and import them into Matlab
+\item Demonstrate the application of several pixel-processing algorithms.
+\item Render histograms and images
+\end{itemize}
+
+\section*{Grading}
+\begin{table}[h]
+\begin{centering}
+\begin{tabular}{|l|l|}
+\hline
+Theory Questions & 10pts \\
+RGB $\rightarrow$ Grayscale & 10pts\\
+RGB $\rightarrow$ Binary & 20pts\\
+Histograms & 30pts\\
+Contrast Stretching & 30pts\\
+\hline
+\textbf{TOTAL} & 100pts\\
+\hline
+\end{tabular}
+\caption{Grading Rubric}
+\end{centering}
+\end{table}
+
+\newpage
+\section{(10pts) Theory Questions}
+\begin{enumerate}
+\item (2pts) Given a point in 3D space, (3,5,20) and an effective focal length of 10, where will this point appear on the 2D image plane?
+
+\item (2pts) If we have a focal length of 10 and a lens effective diameter of 5, what is the field of view of this camera system (in degrees)?
+
+\item   Based on observing a histogram perhaps we decided to create the following pixel intensity mappings in order to stretch the values of a particularly compressed area (you may assume the full range is [0,255]):\\
+
+\begin{center}
+[0,20]$\rightarrow$[0,10]\\
+(20,25]$\rightarrow$(10,95]\\
+(25,100)$\rightarrow$(95,100]
+\end{center}
+
+\begin{enumerate}
+\item(2pts) Draw a 2D graph showing these mappings.  The x-axis will be the input values and the y-axis will be the output values.
+
+\item (3pts) What are the equations for these mappings?
+
+\item (1pt) Given a value of 50, what will this value be mapped to?
+\end{enumerate}
+\end{enumerate}
+
+
+\newpage
+\section{(10pts) RGB $\rightarrow$ Grayscale}
+The first point-processing thing we want to be able to do is to convert an image from color to grayscale.\\
+
+\noindent
+Read in your color image and use the following formula to convert it to a grayscale image.  You \textbf{may not} use a built-in function to do this (i.e rgb2gray).\\
+
+\begin{equation}
+Gray=0.2989R+0.5870*G+0.1140B
+\end{equation}
+
+\section{(10 points) RGB $\rightarrow$ Binary}
+In this part, we want to be able to convert our color image (or grayscale image) into a binary image, where each pixel is either black or white.\\
+
+\noindent
+Produce three binary images, one for each of the following thresholds (as percentages of maximum possible intensity value):
+\begin{itemize}
+\item t=25\%
+\item t=50\%
+\item t=75\%
+\end{itemize}
+
+\section{(30 points) Histograms}
+Histograms are a critical analysis tool use for many computer vision problems.  Display four histograms for your image, each of which have 256 bins.  \textbf{You may not use a built-in function to obtain the histogram}.  To plot your histogram, use the \emph{bar} function of Matlab.
+
+\begin{itemize}
+\item Grayscale histogram
+\item Histogram of the red channel
+\item Histogram of the green channel
+\item Histogram of the blue channel.
+\end{itemize}
+
+
+\section{(30 points) Contrast Stretching}
+Finally, we want to use the grayscale histogram in the previous part to perform contrast stretching.   Based on your histogram, perform contrast stretching.  It will be up to you to decide on the region mappings and how many there should be.  Again, this should be driven by your histograms in the previous part.\\
+
+\noindent
+Your submission should include:
+\begin{itemize}
+\item The original grayscale image and its histogram.
+\item The contrast stretched grayscale image and its histogram.
+\item \textbf{A list of the region mappings along with text justifying your decision}.
+\end{itemize}
+
+
+\newpage
+\section*{Submission}
+For your submission, upload to Blackboard a single zip file containing:
+
+\begin{enumerate}
+\item PDF writeup that includes:
+\begin{enumerate}
+\item Your answer to the theory question(s).
+\item The RGB and Gray images for Part 1
+\item The RGB and Binary images for Part 2 (so 4 images total)
+\item The histograms for Part 3 (4 total)
+\item The original and contrast stretched image and histograms for Part 4 along with the chosen mapping parameters and their justifications.
+\end{enumerate}
+\item A README text file (\textbf{not} Word or PDF) that explains:
+\begin{enumerate}
+\item Features of your program
+\item Name of your entry-point script
+\item Any instructions on how to run your script
+\end{enumerate}
+\item Your source files.
+\item The chosen image(s) that you processed.
+\end{enumerate}
+
+
+\end{document}
+
+
