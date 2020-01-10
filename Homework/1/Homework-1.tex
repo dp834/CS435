@@ -1,0 +1,82 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+
+\author{Damien Prieur}
+\title{Assignment 1 \\ CS 435}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Question 1}
+\begin{enumerate}
+\item (2pts) Given a point in 3D space, (3,5,20) and an effective focal length of 10, where will this point appear on the 2D image plane?
+
+\item (2pts) If we have a focal length of 10 and a lens effective diameter of 5, what is the field of view of this camera system (in degrees)?
+
+\item   Based on observing a histogram perhaps we decided to create the following pixel intensity mappings in order to stretch the values of a particularly compressed area (you may assume the full range is [0,255]):\\
+
+\begin{center}
+[0,20]$\rightarrow$[0,10]\\
+(20,25]$\rightarrow$(10,95]\\
+(25,100)$\rightarrow$(95,100]
+\end{center}
+
+\begin{enumerate}
+\item(2pts) Draw a 2D graph showing these mappings.  The x-axis will be the input values and the y-axis will be the output values.
+
+\item (3pts) What are the equations for these mappings?
+
+\item (1pt) Given a value of 50, what will this value be mapped to?
+\end{enumerate}
+\end{enumerate}
+
+\section*{Question 2}
+The first point-processing thing we want to be able to do is to convert an image from color to grayscale.\\
+
+\noindent
+Read in your color image and use the following formula to convert it to a grayscale image.  You \textbf{may not} use a built-in function to do this (i.e rgb2gray).\\
+
+\begin{equation}
+Gray=0.2989R+0.5870*G+0.1140B
+\end{equation}
+
+
+\section*{Question 3}
+In this part, we want to be able to convert our color image (or grayscale image) into a binary image, where each pixel is either black or white.\\
+
+\noindent
+Produce three binary images, one for each of the following thresholds (as percentages of maximum possible intensity value):
+\begin{itemize}
+\item t=25\%
+\item t=50\%
+\item t=75\%
+\end{itemize}
+
+
+\section*{Question 4}
+Histograms are a critical analysis tool use for many computer vision problems.  Display four histograms for your image, each of which have 256 bins.  \textbf{You may not use a built-in function to obtain the histogram}.  To plot your histogram, use the \emph{bar} function of Matlab.
+
+\begin{itemize}
+\item Grayscale histogram
+\item Histogram of the red channel
+\item Histogram of the green channel
+\item Histogram of the blue channel.
+\end{itemize}
+
+
+\section*{Question 5}
+Finally, we want to use the grayscale histogram in the previous part to perform contrast stretching.   Based on your histogram, perform contrast stretching.  It will be up to you to decide on the region mappings and how many there should be.  Again, this should be driven by your histograms in the previous part.\\
+
+\noindent
+Your submission should include:
+\begin{itemize}
+\item The original grayscale image and its histogram.
+\item The contrast stretched grayscale image and its histogram.
+\item \textbf{A list of the region mappings along with text justifying your decision}.
+\end{itemize}
+
+
+\end{document}
