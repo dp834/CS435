@@ -1,6 +1,8 @@
 \documentclass{article}
 
 \usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
 
 \author{Damien Prieur}
 \title{Assignment 1 \\ CS 435}
@@ -13,8 +15,28 @@
 \section*{Question 1}
 \begin{enumerate}
 \item (2pts) Given a point in 3D space, (3,5,20) and an effective focal length of 10, where will this point appear on the 2D image plane?
+\\
+We can solve this using the lens formula solving for x and y independently.
+$$ \frac{y'}{y} = \frac{z'}{z} $$
+$$ z' = 10 \qquad z = 20 \qquad \Rightarrow \qquad e_1'(e_1) = e_1 \frac{10}{20} $$
+So we get this function
+$$ (x,y,z) \Rightarrow (e_1'(x), e_1'(y), e_1'(z)) $$
+Plugging in our numbers we get
+$$ (3,5,20) \Rightarrow (1.5,2.5,10) $$
+
+So it will appear at $ x = 1.5 $ and $ y = 2.5 $ on our 2D image plane.
+
 
 \item (2pts) If we have a focal length of 10 and a lens effective diameter of 5, what is the field of view of this camera system (in degrees)?
+\\
+We can solve this using the Field of View formula.
+$$ \tan\left(\frac{\theta}{2}\right)=\frac{D}{2f} $$
+Based on the problem we have $D = 5 $ and $ f = 10 $
+Solving for $\theta$ we get
+$$ \theta = 2\arctan\left(\frac{D}{2f}\right) $$
+Plugging in we get
+
+$$ \theta = 2\arctan\left(\frac{5}{2\times10}\right) \approx 28.1\text{ degrees}$$
 
 \item   Based on observing a histogram perhaps we decided to create the following pixel intensity mappings in order to stretch the values of a particularly compressed area (you may assume the full range is [0,255]):\\
 
@@ -26,10 +48,28 @@
 
 \begin{enumerate}
 \item(2pts) Draw a 2D graph showing these mappings.  The x-axis will be the input values and the y-axis will be the output values.
+\begin{figure}
+    \includegraphics[width=\linewidth]{images/1-3-a.png}
+\end{figure}
+
 
 \item (3pts) What are the equations for these mappings?
+$$ f(x) = \begin{cases}
+    \frac{10-0}{20-0} (x-0) + 0 & 0 \leq x \leq 20 \\
+    \frac{95-10}{25-20}(x-20) + 10 & 20 < x \leq 25 \\
+    \frac{100-95}{100-25}(x-25) + 95 & 25 < x \leq 100 \\
+    x & 100 < x \leq 255
+ \end{cases} $$
+Simplifying gives us
+$$ f(x) = \begin{cases}
+    \frac{x}{2} & 0 \leq x \leq 20 \\
+    17x-330 & 20 < x \leq 25 \\
+    \frac{x}{15}+\frac{280}{3} & 25 < x \leq 100 \\
+    x & 100 < x \leq 255
+ \end{cases} $$
 
 \item (1pt) Given a value of 50, what will this value be mapped to?
+$$f(50) = \frac{50}{15}+\frac{280}{3} = \frac{1450}{15} \approx 96.7 $$
 \end{enumerate}
 \end{enumerate}
 
