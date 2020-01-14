@@ -8,6 +8,10 @@
 \title{Assignment 1 \\ CS 435}
 \date{}
 
+\catcode`\%=12
+\newcommand\pcnt{%}
+\catcode`\%=14
+
 \begin{document}
 
 \maketitle
@@ -48,8 +52,9 @@ $$ \theta = 2\arctan\left(\frac{5}{2\times10}\right) \approx 28.1\text{ degrees}
 
 \begin{enumerate}
 \item(2pts) Draw a 2D graph showing these mappings.  The x-axis will be the input values and the y-axis will be the output values.
-\begin{figure}
-    \includegraphics[width=\linewidth]{images/1-3-a.png}
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=.5]{images/1-3-a.png}
 \end{figure}
 
 
@@ -82,6 +87,10 @@ Read in your color image and use the following formula to convert it to a graysc
 \begin{equation}
 Gray=0.2989R+0.5870*G+0.1140B
 \end{equation}
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=.5]{images/generated/Q2_grayscale.png}
+\end{figure}
 
 
 \section*{Question 3}
@@ -91,8 +100,17 @@ In this part, we want to be able to convert our color image (or grayscale image)
 Produce three binary images, one for each of the following thresholds (as percentages of maximum possible intensity value):
 \begin{itemize}
 \item t=25\%
+\begin{figure}[h!]
+    \includegraphics[scale=.25]{images/generated/Q3_threshold25\pcnt.png}
+\end{figure}
 \item t=50\%
+\begin{figure}[h]
+    \includegraphics[scale=.5]{images/generated/Q3_threshold50\pcnt.png}
+\end{figure}
 \item t=75\%
+\begin{figure}[h]
+    \includegraphics[scale=.5]{images/generated/Q3_threshold75\pcnt.png}
+\end{figure}
 \end{itemize}
 
 
@@ -101,9 +119,21 @@ Histograms are a critical analysis tool use for many computer vision problems.  
 
 \begin{itemize}
 \item Grayscale histogram
+\begin{figure}
+    \includegraphics[width=\linewidth]{images/generated/Q4_hist_gray.png}
+\end{figure}
 \item Histogram of the red channel
+\begin{figure}
+    \includegraphics[width=\linewidth]{images/generated/Q4_hist_red.png}
+\end{figure}
 \item Histogram of the green channel
+\begin{figure}
+    \includegraphics[width=\linewidth]{images/generated/Q4_hist_green.png}
+\end{figure}
 \item Histogram of the blue channel.
+\begin{figure}
+    \includegraphics[width=\linewidth]{images/generated/Q4_hist_blue.png}
+\end{figure}
 \end{itemize}
 
 
@@ -114,9 +144,24 @@ Finally, we want to use the grayscale histogram in the previous part to perform 
 Your submission should include:
 \begin{itemize}
 \item The original grayscale image and its histogram.
+\begin{figure}
+    \includegraphics[width=\linewidth]{images/generated/Q2_grayscale.png}
+\end{figure}
+\begin{figure}
+    \includegraphics[width=\linewidth]{images/generated/Q4_hist_gray.png}
+\end{figure}
 \item The contrast stretched grayscale image and its histogram.
+\begin{figure}
+    \includegraphics[width=\linewidth]{images/generated/Q5_grayscale_contrast_stretched.png}
+\end{figure}
+\begin{figure}
+    \includegraphics[width=\linewidth]{images/generated/Q5_hist_contrast_stretched.png}
+\end{figure}
 \item \textbf{A list of the region mappings along with text justifying your decision}.
 \end{itemize}
+Based on the initial histogram i decided to remove the regions that were not at all being used and stretch the rest of the regions outwards.
+This lead me to have this mapping
+$$ [26, 245] \Rightarrow [0,255] $$
 
 
 \end{document}
