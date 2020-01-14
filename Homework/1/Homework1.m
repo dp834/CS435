@@ -7,7 +7,7 @@
 %% Global Setup
 
 
-img_original = double(imread('../../Images/Lenna.png'));
+img_original = double(imread('images/Lenna.png'));
 output_location_prefix = 'images/generated/';
 %cleanup any previously generated images
 delete('images/generated/*');
