@@ -112,6 +112,7 @@ chart = bar(0:255, bins);
 set(chart(1), 'FaceColor', 'black', 'EdgeColor', 'none', 'BarWidth', 1);
 saveas(gcf, strcat(output_location_prefix, 'Q5_hist_contrast_stretched.png'));
 imwrite(uint8(img_contrast_stretched), strcat(output_location_prefix, 'Q5_grayscale_contrast_stretched.png'))
+fprintf('Done with question 5\n');
 
 
 % perform simple contrast stretch by removing the any empty regions
