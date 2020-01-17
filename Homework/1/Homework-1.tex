@@ -3,6 +3,7 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath}
 \usepackage{graphicx}
+\usepackage{subfig}
 
 \author{Damien Prieur}
 \title{Assignment 1 \\ CS 435}
@@ -40,14 +41,14 @@ Solving for $\theta$ we get
 $$ \theta = 2\arctan\left(\frac{D}{2f}\right) $$
 Plugging in we get
 
-$$ \theta = 2\arctan\left(\frac{5}{2\times10}\right) \approx 28.1\text{ degrees}$$
+$$ \theta = 2\arctan\left(\frac{5}{2\times 10}\right) \approx 28.1\text{ degrees}$$
 
 \item   Based on observing a histogram perhaps we decided to create the following pixel intensity mappings in order to stretch the values of a particularly compressed area (you may assume the full range is [0,255]):\\
 
 \begin{center}
 [0,20]$\rightarrow$[0,10]\\
 (20,25]$\rightarrow$(10,95]\\
-(25,100)$\rightarrow$(95,100]
+(25,255)$\rightarrow$(95,255]
 \end{center}
 
 \begin{enumerate}
@@ -60,21 +61,19 @@ $$ \theta = 2\arctan\left(\frac{5}{2\times10}\right) \approx 28.1\text{ degrees}
 
 \item (3pts) What are the equations for these mappings?
 $$ f(x) = \begin{cases}
-    \frac{10-0}{20-0} (x-0) + 0 & 0 \leq x \leq 20 \\
-    \frac{95-10}{25-20}(x-20) + 10 & 20 < x \leq 25 \\
-    \frac{100-95}{100-25}(x-25) + 95 & 25 < x \leq 100 \\
-    x & 100 < x \leq 255
+    \frac{10-0}{20-0} (x-0) + 0         & 0 \leq x \leq 20 \\
+    \frac{95-10}{25-20}(x-20) + 10      & 20 < x \leq 25 \\
+    \frac{255-95}{255-25}(x-25) + 95    & 25 < x \leq 255 \\
  \end{cases} $$
 Simplifying gives us
 $$ f(x) = \begin{cases}
-    \frac{x}{2} & 0 \leq x \leq 20 \\
-    17x-330 & 20 < x \leq 25 \\
-    \frac{x}{15}+\frac{280}{3} & 25 < x \leq 100 \\
-    x & 100 < x \leq 255
+    \frac{x}{2}                         & 0 \leq x \leq 20  \\
+    17x-330                             & 20 < x \leq 25    \\
+    \frac{16}{23} x + \frac{1785}{23}   & 25 < x \leq 255   \\
  \end{cases} $$
 
 \item (1pt) Given a value of 50, what will this value be mapped to?
-$$f(50) = \frac{50}{15}+\frac{280}{3} = \frac{1450}{15} \approx 96.7 $$
+$$f(50) = \frac{16}{23}\times 50 + \frac{1785}{23} = \frac{2585}{23} \approx 112.39 \approx 112 $$
 \end{enumerate}
 \end{enumerate}
 
@@ -100,15 +99,15 @@ In this part, we want to be able to convert our color image (or grayscale image)
 Produce three binary images, one for each of the following thresholds (as percentages of maximum possible intensity value):
 \begin{itemize}
 \item t=25\%
-\begin{figure}[h!]
+\begin{figure}
     \includegraphics[scale=.25]{images/generated/Q3_threshold25\pcnt.png}
 \end{figure}
 \item t=50\%
-\begin{figure}[h]
+\begin{figure}
     \includegraphics[scale=.5]{images/generated/Q3_threshold50\pcnt.png}
 \end{figure}
 \item t=75\%
-\begin{figure}[h]
+\begin{figure}
     \includegraphics[scale=.5]{images/generated/Q3_threshold75\pcnt.png}
 \end{figure}
 \end{itemize}
@@ -161,7 +160,11 @@ Your submission should include:
 \end{itemize}
 Based on the initial histogram i decided to remove the regions that were not at all being used and stretch the rest of the regions outwards.
 This lead me to have this mapping
-$$ [26, 245] \Rightarrow [0,255] $$
+\begin{center}
+[0,26]$\rightarrow$[0]\\
+(26,245]$\rightarrow$(0,255]\\
+(245,255]$\rightarrow$[255]
+\end{center}
 
 
 \end{document}
