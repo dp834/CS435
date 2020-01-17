@@ -51,6 +51,7 @@ $$ \theta = 2\arctan\left(\frac{5}{2\times 10}\right) \approx 28.1\text{ degrees
 (25,255)$\rightarrow$(95,255]
 \end{center}
 
+\pagebreak
 \begin{enumerate}
 \item(2pts) Draw a 2D graph showing these mappings.  The x-axis will be the input values and the y-axis will be the output values.
 \begin{figure}[h]
@@ -77,6 +78,7 @@ $$f(50) = \frac{16}{23}\times 50 + \frac{1785}{23} = \frac{2585}{23} \approx 112
 \end{enumerate}
 \end{enumerate}
 
+\pagebreak
 \section*{Question 2}
 The first point-processing thing we want to be able to do is to convert an image from color to grayscale.\\
 
@@ -86,85 +88,57 @@ Read in your color image and use the following formula to convert it to a graysc
 \begin{equation}
 Gray=0.2989R+0.5870*G+0.1140B
 \end{equation}
-\begin{figure}[h]
+\begin{figure}[h!]
     \centering
-    \includegraphics[scale=.5]{images/generated/Q2_grayscale.png}
+    \subfloat[Original]{\includegraphics[scale=.5]{images/Lenna.png}}
+    \subfloat[Grayscale]{\includegraphics[scale=.5]{images/generated/Q2_grayscale.png}}
 \end{figure}
 
-
+\pagebreak
 \section*{Question 3}
 In this part, we want to be able to convert our color image (or grayscale image) into a binary image, where each pixel is either black or white.\\
 
 \noindent
 Produce three binary images, one for each of the following thresholds (as percentages of maximum possible intensity value):
-\begin{itemize}
-\item t=25\%
-\begin{figure}
-    \includegraphics[scale=.25]{images/generated/Q3_threshold25\pcnt.png}
+\begin{figure}[h!]
+    \centering
+    \subfloat[t=25\%]{\includegraphics[scale=.3]{images/generated/Q3_threshold25\pcnt.png}} \\
+    \subfloat[t=50\%]{\includegraphics[scale=.3]{images/generated/Q3_threshold50\pcnt.png}} \\
+    \subfloat[t=75\%]{\includegraphics[scale=.3]{images/generated/Q3_threshold75\pcnt.png}} \\
 \end{figure}
-\item t=50\%
-\begin{figure}
-    \includegraphics[scale=.5]{images/generated/Q3_threshold50\pcnt.png}
-\end{figure}
-\item t=75\%
-\begin{figure}
-    \includegraphics[scale=.5]{images/generated/Q3_threshold75\pcnt.png}
-\end{figure}
-\end{itemize}
 
 
+\pagebreak
 \section*{Question 4}
 Histograms are a critical analysis tool use for many computer vision problems.  Display four histograms for your image, each of which have 256 bins.  \textbf{You may not use a built-in function to obtain the histogram}.  To plot your histogram, use the \emph{bar} function of Matlab.
 
-\begin{itemize}
-\item Grayscale histogram
-\begin{figure}
-    \includegraphics[width=\linewidth]{images/generated/Q4_hist_gray.png}
+\begin{figure}[h!]
+    \centering
+    \subfloat[Grayscale]{\includegraphics[scale=.45]{images/generated/Q4_hist_gray.png}}
+    \subfloat[Red]{\includegraphics[scale=.45]{images/generated/Q4_hist_red.png}} \\
+    \subfloat[Green]{\includegraphics[scale=.45]{images/generated/Q4_hist_green.png}}
+    \subfloat[Blue]{\includegraphics[scale=.45]{images/generated/Q4_hist_blue.png}}
 \end{figure}
-\item Histogram of the red channel
-\begin{figure}
-    \includegraphics[width=\linewidth]{images/generated/Q4_hist_red.png}
-\end{figure}
-\item Histogram of the green channel
-\begin{figure}
-    \includegraphics[width=\linewidth]{images/generated/Q4_hist_green.png}
-\end{figure}
-\item Histogram of the blue channel.
-\begin{figure}
-    \includegraphics[width=\linewidth]{images/generated/Q4_hist_blue.png}
-\end{figure}
-\end{itemize}
 
-
+\pagebreak
 \section*{Question 5}
 Finally, we want to use the grayscale histogram in the previous part to perform contrast stretching.   Based on your histogram, perform contrast stretching.  It will be up to you to decide on the region mappings and how many there should be.  Again, this should be driven by your histograms in the previous part.\\
 
-\noindent
-Your submission should include:
-\begin{itemize}
-\item The original grayscale image and its histogram.
-\begin{figure}
-    \includegraphics[width=\linewidth]{images/generated/Q2_grayscale.png}
-\end{figure}
-\begin{figure}
-    \includegraphics[width=\linewidth]{images/generated/Q4_hist_gray.png}
-\end{figure}
-\item The contrast stretched grayscale image and its histogram.
-\begin{figure}
-    \includegraphics[width=\linewidth]{images/generated/Q5_grayscale_contrast_stretched.png}
-\end{figure}
-\begin{figure}
-    \includegraphics[width=\linewidth]{images/generated/Q5_hist_contrast_stretched.png}
-\end{figure}
-\item \textbf{A list of the region mappings along with text justifying your decision}.
-\end{itemize}
 Based on the initial histogram i decided to remove the regions that were not at all being used and stretch the rest of the regions outwards.
 This lead me to have this mapping
 \begin{center}
-[0,26]$\rightarrow$[0]\\
-(26,245]$\rightarrow$(0,255]\\
-(245,255]$\rightarrow$[255]
+[0,30]$\rightarrow$[0]\\
+(30,230]$\rightarrow$(0,255]\\
+(230,255]$\rightarrow$[255]
 \end{center}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat[Original Grayscale Image]{\includegraphics[scale=.4]{images/generated/Q2_grayscale.png}}
+    \subfloat[Original Grayscale Histogram]{\includegraphics[scale=.4]{images/generated/Q4_hist_gray.png}} \\
+    \subfloat[Contrast Stretched Image]{\includegraphics[scale=.4]{images/generated/Q5_grayscale_contrast_stretched.png}}
+    \subfloat[Contrast Stretched Histogram]{\includegraphics[scale=.4]{images/generated/Q5_hist_contrast_stretched.png}}
+\end{figure}
 
 
 \end{document}

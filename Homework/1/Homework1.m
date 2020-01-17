@@ -117,7 +117,7 @@ imwrite(uint8(img_contrast_stretched), strcat(output_location_prefix, 'Q5_graysc
 % perform simple contrast stretch by removing the any empty regions
 % for our image we are doing [26,245] -> [0,255]
 function y = contrast_stretch_func(x)
-    y = uint8((255-0)/(245-26)*(x-26) + 0);
+    y = uint8((255-0)/(230-30)*(x-30) + 0);
     if y < 0
         y = 0;
     elseif y > 255

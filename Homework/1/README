@@ -1,0 +1,17 @@
+MATLAB:
+FILE: Homework1.m
+Each question is in its own section labeled
+
+IMAGES:
+src = images/
+output = images/generated/
+
+To Run either open "Homework1.m" in matlab and run or use the make file to run it for you.
+
+make run
+
+or from cli you can use
+
+matlab -nodisplay -nosplash -batch "run('Homework1.m')"
+
+just be in the root of this directory

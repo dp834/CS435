@@ -12,7 +12,7 @@ run: $(MATLAB_FILES) $(MATLAB_MAIN)
 	mkdir -p $(IMG_OUTPUT)
 	matlab -nodisplay -nosplash -batch "run('$(MATLAB_MAIN)')"
 
-pdf: $(LATEX_SRC) run
+pdf: $(LATEX_SRC)
 	pdflatex -jobname $(PDF_OUTPUT) $(LATEX_SRC)
 
 clean:
