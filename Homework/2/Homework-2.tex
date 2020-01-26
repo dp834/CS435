@@ -1,0 +1,130 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{subfig}
+
+\author{Damien Prieur}
+\title{Assignment 2 \\ CS 435}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Theory Questions}
+\begin{enumerate}
+\item Apply a $3\times3$ mean filter to the following 2D matrix.  You may assume that the filter is only applied to areas of the data that have a full 9 samples to process.  Feel free to use Matlab to help you compute this, however, realize that you may be asked to do this without a calculator on an exam.
+$$
+\begin{bmatrix}
+7&   7&     6&     3&     3&     4&     2&     2\\
+3&   7&     2&     6&     4&     4&     5&     7\\
+5&   4&     7&     5&     1&     1&     2&     2\\
+2&   1&     3&     4&     1&     3&     5&     6\\
+6&   2&     2&     7&     4&     2&     5&     4\\
+2&   2&     2&     3&     6&     6&     6&     7\\
+4&   6&     5&     6&     7&     3&     4&     1\\
+5&   2&     4&     6&     1&     4&     1&     4\\
+\end{bmatrix}
+$$
+$$\text{Mean filter} = \frac{1}{9}
+\begin{bmatrix}
+1&  1&  1   \\
+1&  1&  1   \\
+1&  1&  1   \\
+\end{bmatrix}
+$$
+$$
+\begin{bmatrix}
+5.3333&    5.2222&    4.1111&    3.4444&    2.8889&    3.2222   \\
+3.7778&    4.3333&    3.6667&    3.2222&    2.8889&    3.8889   \\
+3.5556&    3.8889&    3.7778&    3.1111&    2.6667&    3.3333   \\
+2.4444&    2.8889&    3.5556&    4.0000&    4.2222&    4.8889   \\
+3.4444&    3.8889&    4.6667&    4.8889&    4.7778&    4.2222   \\
+3.5556&    4.0000&    4.4444&    4.6667&    4.2222&    4.0000   \\
+\end{bmatrix}
+$$
+
+
+\item What is the kernel function for a $5\times5$ Gaussian function with $\sigma=1$?   Normalize the filter so that its elements sum to one.  Feel free to use Matlab to help you compute this, however, realize that you may be asked to do this without a calculator on an exam (leaving things in terms of $e$).
+$$
+\frac{1}{9}
+\begin{bmatrix}
+e^{-\frac{(-1)^2+1^2}{2 \times 1}}&      e^{-\frac{0^2+1^2}{2 \times 1}}&     e^{-\frac{1^2+1^2}{2 \times 1}}&     \\
+e^{-\frac{(-1)^2+0^2}{2 \times 1}}&      e^{-\frac{0^2+0^2}{2 \times 1}}&     e^{-\frac{1^2+0^2}{2 \times 1}}&     \\
+e^{-\frac{(-1)^2+(-1)^2}{2 \times 1}}&   e^{-\frac{0^2+(-1)^2}{2 \times 1}}&  e^{-\frac{1^2+(-1)^2}{2 \times 1}}&  \\
+
+\end{bmatrix}
+$$
+$$
+\frac{1}{9}
+\begin{bmatrix}
+e^{-1}&             e^{-\frac{1}{2}}&   e^{-1}&             \\
+e^{-\frac{1}{2}}&   1&                  e^{-\frac{1}{2}}&   \\
+e^{-1}&             e^{-\frac{1}{2}}&   e^{-1}&             \\
+\end{bmatrix}
+$$
+
+\item Given the following 2D kernels, what is the magnitude and direction of the gradient at the center pixel in $I$?  Feel free to use Matlab to help you compute this, however, realize that you may be asked to do this without a calculator on an exam.
+\begin{equation}
+\frac{\partial}{\partial x} = \begin{bmatrix}
+-1/3 & 0 & 1/3\\
+-1/3 & 0 & 1/3\\
+-1/3 & 0 & 1/3\\
+\end{bmatrix}
+\Rightarrow
+\text{convolution} = \begin{bmatrix}
+1/3 & 0 & -1/3\\
+1/3 & 0 & -1/3\\
+1/3 & 0 & -1/3\\
+\end{bmatrix}
+\end{equation}
+\begin{equation}
+\frac{\partial}{\partial y} = \begin{bmatrix}
+-1/3 & -1/3 & -1/3\\
+0 & 0 & 0\\
+1/3 & 1/3 & 1/3\\
+\end{bmatrix}
+\Rightarrow
+\text{convolution} = \begin{bmatrix}
+1/3 & 1/3 & 1/3\\
+0 & 0 & 0\\
+-1/3 & -1/3 & -1/3\\
+\end{bmatrix}
+\end{equation}
+\begin{equation}
+I=
+\begin{bmatrix}
+7 & 7 & 6\\
+3 & 7 & 2\\
+5 & 4 & 7\\
+\end{bmatrix}
+\end{equation}
+Applying these gives us
+$$ \frac{\partial}{\partial x} = 0 $$
+$$ \frac{\partial}{\partial y} = -\frac{4}{3} $$
+
+\end{enumerate}
+
+\section{Plotting pixel value vs log exposure}
+On BBlearn you have been provided with a directory, \emph{memorial}.  This directory contains a file \emph{images.txt} that provides a list of images in that directory, as well as their exposure lengths.  Your first task will be to parse the image.txt file to get the list of file names and associated exposure times, and then load all the images in that directory.\\
+
+\noindent
+Next, select $three$ pixel locations and plot the values in their \emph{red channel} as a function of $\Delta t_j$, where $\Delta t_j$ is the exposure length for image $j$.  This is akin to plotting the \emph{log irradiance} as a function of the exposure length, but with an identity log irradiance function.\\
+
+\begin{figure}[h]
+    \includegraphics{images/generated/Q2_exposure_vs_intensity.png}
+\end{figure}
+
+\newpage
+\section{Finding and plotting the Log Irradance Functions}
+Using the technique discussed in class, find the log irradiance function $g(z_{ij})$ for each color channel.  Then repeat the plot from the previous section.  You image should look something like Figure \ref{fig2}.\\
+
+\noindent
+\emph{NOTE:  The more pixels you use to solve the system the better.  That being said, the more pixels you use the larger the matrix to invert will becomes.   Therefore experiment with how many pixels to use.}
+
+
+\newpage
+
+\end{document}
