@@ -99,30 +99,149 @@ saveas(gcf, strcat(output_location_prefix, 'Q2_exposure_vs_intensity.png'));
 
 % possible pixel values = 256 (0-255)
 
-vals = 4;
-pixel_loc = [1 1; 2 2];
-images_a = zeros(3,2,2);
-images_a(1, 1,1) = 0;
-images_a(2, 1,1) = 1;
-images_a(3, 1,1) = 2;
-images_a(1, 2,2) = 3;
-images_a(2, 2,2) = 3;
-images_a(3, 2,2) = 3;
-exposures_tmp = [.5 1 2];
+%vals = 4;
+%pixel_loc = [1 1; 2 2];
+%images_a = zeros(3,2,2);
+%images_a(1, 1,1) = 0;
+%images_a(2, 1,1) = 1;
+%images_a(3, 1,1) = 2;
+%images_a(1, 2,2) = 3;
+%images_a(2, 2,2) = 3;
+%images_a(3, 2,2) = 3;
+%exposures_tmp = [.5 1 2];
+
+number_of_pixels = 500;
+
+random_pixel_locations = zeros(number_of_pixels, 2);
+
+random_pixel_locations(:,1) = randi([1 size(img_read_in,1)], number_of_pixels, 1);
+random_pixel_locations(:,2) = randi([1 size(img_read_in,2)], number_of_pixels, 1);
+
+log_exposures = arrayfun(@(x) log(x), exposures);
+log_exposures = log_exposures';
+
+log_irradiance_mapping = zeros(256,3);
+
+% Red color channel
+log_irradiance_mapping(:,1) = log_irradiance_inverse(256, random_pixel_locations, exposures, images(:,:,:,1));
 
 
-asdf = log_irradiance_inverse(vals, pixel_loc, exposures_tmp, images_a)
+pixel_locations  = [ 100 100; 200 200; 300 300];
+
+data = zeros(3,numel(exposures));
+data(1,:) = images(:,pixel_locations(1,1), pixel_locations(1,2), 1);
+data(2,:) = images(:,pixel_locations(2,1), pixel_locations(2,2), 1);
+data(3,:) = images(:,pixel_locations(3,1), pixel_locations(3,2), 1);
+
+data = arrayfun(@(x) log_irradiance_mapping(x+1,1), data);
+
+data = data - log_exposures;
+
+plot(exposures, data(1,:),'-o');
+hold on;
+plot(exposures, data(2,:),'-o');
+plot(exposures, data(3,:),'-o');
+legend('100,100', '200,200','300,300');
+hold off;
+saveas(gcf, strcat(output_location_prefix, 'Q3_exposure_vs_log_irradiance_Red.png'));
+
+
+% Green color Channel
+log_irradiance_mapping(:,2) = log_irradiance_inverse(256, random_pixel_locations, exposures, images(:,:,:,2));
+
+
+pixel_locations  = [ 100 100; 200 200; 300 300];
+
+data = zeros(3,numel(exposures));
+data(1,:) = images(:,pixel_locations(1,1), pixel_locations(1,2), 2);
+data(2,:) = images(:,pixel_locations(2,1), pixel_locations(2,2), 2);
+data(3,:) = images(:,pixel_locations(3,1), pixel_locations(3,2), 2);
+
+data = arrayfun(@(x) log_irradiance_mapping(x+1,2), data);
+
+data = data - log_exposures;
+
+plot(exposures, data(1,:),'-o');
+hold on;
+plot(exposures, data(2,:),'-o');
+plot(exposures, data(3,:),'-o');
+legend('100,100', '200,200','300,300');
+hold off;
+saveas(gcf, strcat(output_location_prefix, 'Q3_exposure_vs_log_irradiance_Green.png'));
+
+% Blue color Channel
+log_irradiance_mapping(:,3) = log_irradiance_inverse(256, random_pixel_locations, exposures, images(:,:,:,3));
+
+
+pixel_locations  = [ 100 100; 200 200; 300 300];
+
+data = zeros(3,numel(exposures));
+data(1,:) = images(:,pixel_locations(1,1), pixel_locations(1,2), 3);
+data(2,:) = images(:,pixel_locations(2,1), pixel_locations(2,2), 3);
+data(3,:) = images(:,pixel_locations(3,1), pixel_locations(3,2), 3);
+
+data = arrayfun(@(x) log_irradiance_mapping(x+1,3), data);
+
+data = data - log_exposures;
+
+plot(exposures, data(1,:),'-o');
+hold on;
+plot(exposures, data(2,:),'-o');
+plot(exposures, data(3,:),'-o');
+legend('100,100', '200,200','300,300');
+hold off;
+saveas(gcf, strcat(output_location_prefix, 'Q3_exposure_vs_log_irradiance_Blue.png'));
+
+
+%% Question 4 Generate HDR Images
+% For each color channel compute the new pixel value to be the average of the pixel's irradiance values from all exposures.
+
+generated_hdr_image = zeros(size(img_read_in));
+
+%log_exposures
+%log_irradiance_mapping(input, color);
+%images(exposure, x, y, color)
+
+g_images = images;
+g_images(:,:,:,1) = arrayfun(@(x) log_irradiance_mapping(x+1,1), images(:,:,:,1));
+g_images(:,:,:,2) = arrayfun(@(x) log_irradiance_mapping(x+1,2), images(:,:,:,2));
+g_images(:,:,:,3) = arrayfun(@(x) log_irradiance_mapping(x+1,3), images(:,:,:,3));
+
+g_images = g_images - log_exposures';
+
+generated_hdr_image(:,:,:) = exp(mean(g_images, 1));
+
+imwrite(generated_hdr_image, strcat(output_location_prefix, 'Q4_generated_hdr.png'));
+
+%% Question 5 Tone mapping HDR Image
+% Tonemap each channel with f(x) = x/(1+x) then scale to [0,255] and draw image
+
+tonemapped_image = arrayfun(@(x) x/(1+x), generated_hdr_image);
+min_vals = min(tonemapped_image, [], [1 2]);
+max_vals = max(tonemapped_image, [], [1 2]);
+
+% Map [min, max] to [0,255] for each channel
+
+tonemapped_image(:,:,1) = arrayfun(@(x) (255)/(max_vals(1) - min_vals(1))*(x-min_vals(1)), tonemapped_image(:,:,1));
+tonemapped_image(:,:,2) = arrayfun(@(x) (255)/(max_vals(2) - min_vals(2))*(x-min_vals(2)), tonemapped_image(:,:,2));
+tonemapped_image(:,:,3) = arrayfun(@(x) (255)/(max_vals(3) - min_vals(3))*(x-min_vals(3)), tonemapped_image(:,:,3));
+
+imwrite(uint8(tonemapped_image), strcat(output_location_prefix, 'Q5_tonemapped_image.png'));
 
 
 
+
+% --------------------------------------- Functions ----------------------------------
+
+% Question 3) Find g(z_ij) mapping
 function mapping = log_irradiance_inverse(color_values, pixel_locations, exposures, images)
-    A = zeros(size(pixel_locations,1)*size(exposures,2) + 1, color_values + size(pixel_locations,1));    
-    b = zeros(size(A,2),1);
+    A = zeros(size(pixel_locations,1)*size(exposures,2) + 1, color_values + size(pixel_locations,1));
+    b = zeros(size(A,1),1);
 
     k = 1;
 
     for loc = 1:size(pixel_locations,1)
-        for exposure = 1:size(exposures,2)
+        for exposure = 1:size(exposures,1)
             z = images(exposure,pixel_locations(loc,1),pixel_locations(loc,2));
             A(k,z+1) = 1;
             A(k,loc + color_values) = -1;
@@ -138,5 +257,4 @@ function mapping = log_irradiance_inverse(color_values, pixel_locations, exposur
     x = A\b;
     mapping = x(1:color_values);
 end
-
 

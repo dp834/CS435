@@ -49,20 +49,25 @@ $$
 
 \item What is the kernel function for a $5\times5$ Gaussian function with $\sigma=1$?   Normalize the filter so that its elements sum to one.  Feel free to use Matlab to help you compute this, however, realize that you may be asked to do this without a calculator on an exam (leaving things in terms of $e$).
 $$
-\frac{1}{9}
+\frac{1}{5^2}
 \begin{bmatrix}
-e^{-\frac{(-1)^2+1^2}{2 \times 1}}&      e^{-\frac{0^2+1^2}{2 \times 1}}&     e^{-\frac{1^2+1^2}{2 \times 1}}&     \\
-e^{-\frac{(-1)^2+0^2}{2 \times 1}}&      e^{-\frac{0^2+0^2}{2 \times 1}}&     e^{-\frac{1^2+0^2}{2 \times 1}}&     \\
-e^{-\frac{(-1)^2+(-1)^2}{2 \times 1}}&   e^{-\frac{0^2+(-1)^2}{2 \times 1}}&  e^{-\frac{1^2+(-1)^2}{2 \times 1}}&  \\
+e^{-\frac{(-2)^2+2^2}{2 \times 1}}   &   e^{-\frac{(-1)^2+2^2}{2 \times 1}}   &    e^{-\frac{0^2+2^2}{2 \times 1}}   &     e^{-\frac{1^2+2^2}{2 \times 1}}    &     e^{-\frac{2^2+2^2}{2 \times 1}}    &  \\
+e^{-\frac{(-2)^2+1^2}{2 \times 1}}   &   e^{-\frac{(-1)^2+1^2}{2 \times 1}}   &    e^{-\frac{0^2+1^2}{2 \times 1}}   &     e^{-\frac{1^2+1^2}{2 \times 1}}    &     e^{-\frac{2^2+1^2}{2 \times 1}}    &  \\
+e^{-\frac{(-2)^2+0^2}{2 \times 1}}   &   e^{-\frac{(-1)^2+0^2}{2 \times 1}}   &    e^{-\frac{0^2+0^2}{2 \times 1}}   &     e^{-\frac{1^2+0^2}{2 \times 1}}    &     e^{-\frac{2^2+0^2}{2 \times 1}}    &  \\
+e^{-\frac{(-2)^2+(-1)^2}{2 \times 1}}&   e^{-\frac{(-1)^2+(-1)^2}{2 \times 1}}&    e^{-\frac{0^2+(-1)^2}{2 \times 1}}&     e^{-\frac{1^2+(-1)^2}{2 \times 1}} &     e^{-\frac{2^2+(-1)^2}{2 \times 1}} &  \\
+e^{-\frac{(-2)^2+(-2)^2}{2 \times 1}}&   e^{-\frac{(-1)^2+(-2)^2}{2 \times 1}}&    e^{-\frac{0^2+(-2)^2}{2 \times 1}}&     e^{-\frac{1^2+(-2)^2}{2 \times 1}} &     e^{-\frac{2^2+(-2)^2}{2 \times 1}} &  \\
+
 
 \end{bmatrix}
 $$
 $$
-\frac{1}{9}
+\frac{1}{25}
 \begin{bmatrix}
-e^{-1}&             e^{-\frac{1}{2}}&   e^{-1}&             \\
-e^{-\frac{1}{2}}&   1&                  e^{-\frac{1}{2}}&   \\
-e^{-1}&             e^{-\frac{1}{2}}&   e^{-1}&             \\
+e^{-2}          &   e^{-\frac{3}{2}}&   e^{-1}          &   e^{-\frac{3}{2}}&    e^{-2}          &  \\
+e^{-\frac{3}{2}}&   e^{-1}          &   e^{-\frac{1}{2}}&   e^{-1}          &    e^{-\frac{3}{2}}&  \\
+e^{-\frac{1}{2}}&   e^{-\frac{1}{2}}&   1               &   e^{-\frac{1}{2}}&    e^{-1}          &  \\
+e^{-\frac{3}{2}}&   e^{-1}          &   e^{-\frac{1}{2}}&   e^{-1}          &    e^{-\frac{3}{2}}&  \\
+e^{-2}          &   e^{-\frac{3}{2}}&   e^{-1}          &   e^{-\frac{3}{2}}&    e^{-2}          &  \\
 \end{bmatrix}
 $$
 
@@ -102,10 +107,14 @@ I=
 \end{bmatrix}
 \end{equation}
 Applying these gives us
-$$ \frac{\partial}{\partial x} = 0 $$
-$$ \frac{\partial}{\partial y} = -\frac{4}{3} $$
+$$ \frac{\partial I}{\partial x} = 0 $$
+$$ \frac{\partial I}{\partial y} = -\frac{4}{3} $$
+$$ |G| = \sqrt{{-\frac{4}{3}}^2}  = \frac{4}{3}$$
+$$ \theta = arctan(\frac{-\frac{4}{3}}{0}) = -\frac{\pi}{2} $$
 
 \end{enumerate}
+
+\newpage
 
 \section{Plotting pixel value vs log exposure}
 On BBlearn you have been provided with a directory, \emph{memorial}.  This directory contains a file \emph{images.txt} that provides a list of images in that directory, as well as their exposure lengths.  Your first task will be to parse the image.txt file to get the list of file names and associated exposure times, and then load all the images in that directory.\\
@@ -119,12 +128,48 @@ Next, select $three$ pixel locations and plot the values in their \emph{red chan
 
 \newpage
 \section{Finding and plotting the Log Irradance Functions}
-Using the technique discussed in class, find the log irradiance function $g(z_{ij})$ for each color channel.  Then repeat the plot from the previous section.  You image should look something like Figure \ref{fig2}.\\
+Using the technique discussed in class, find the log irradiance function $g(z_{ij})$ for each color channel.  Then repeat the plot from the previous section.\\
 
 \noindent
 \emph{NOTE:  The more pixels you use to solve the system the better.  That being said, the more pixels you use the larger the matrix to invert will becomes.   Therefore experiment with how many pixels to use.}
 
+\begin{figure}[h]
+    \includegraphics{images/generated/Q3_exposure_vs_log_irradiance_Red.png}
+    \caption {Red Channel Exposure vs Log Irradiance}
+\end{figure}
+\begin{figure}[h]
+    \includegraphics{images/generated/Q3_exposure_vs_log_irradiance_Green.png}
+    \caption {Green Channel Exposure vs Log Irradiance}
+\end{figure}
+
+\begin{figure}[h]
+    \includegraphics{images/generated/Q3_exposure_vs_log_irradiance_Blue.png}
+    \caption {Blue Channel Exposure vs Log Irradiance}
+\end{figure}
 
 \newpage
+
+\section{Generate HDR Images}
+Now that we have our log irradiance functions we can combine our images taken with different exposure times!\\
+
+\noindent
+For each color channel, go through all the pixel locations and compute the new pixel value to be the average of the pixel's irradiance values from the different exposure length images (making use of the associated channel's log irradiance function, and that image's exposure time).\\  
+
+\begin{figure}[h]
+    \includegraphics{images/generated/Q4_generated_hdr.png}
+    \caption{Generated HDR Image without tonemapping}
+\end{figure}
+
+\newpage
+
+\section{Tone Mapping an HDR Image}
+HDR images cannot be viewed on devices that only support low dynamic range. To be able to view all the details of dark and bright areas at once, the image must be \emph{tonemapped}. \\
+
+\noindent
+Tonemap each channel of your HDR image by compressing its values using the compresion function $f(x)=\frac{x}{1+x}$ , then scaling its values to $[0,255]$, then casting it as an unsigned 8-bit integer. 
+\begin{figure}[h]
+    \includegraphics{images/generated/Q5_tonemapped_image.png}
+    \caption{Generated HDR Image with tonemapping}
+\end{figure}
 
 \end{document}
