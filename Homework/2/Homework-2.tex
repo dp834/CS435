@@ -49,7 +49,7 @@ $$
 
 \item What is the kernel function for a $5\times5$ Gaussian function with $\sigma=1$?   Normalize the filter so that its elements sum to one.  Feel free to use Matlab to help you compute this, however, realize that you may be asked to do this without a calculator on an exam (leaving things in terms of $e$).
 $$
-\frac{1}{5^2}
+\frac{1}{\sum{W}}
 \begin{bmatrix}
 e^{-\frac{(-2)^2+2^2}{2 \times 1}}   &   e^{-\frac{(-1)^2+2^2}{2 \times 1}}   &    e^{-\frac{0^2+2^2}{2 \times 1}}   &     e^{-\frac{1^2+2^2}{2 \times 1}}    &     e^{-\frac{2^2+2^2}{2 \times 1}}    &  \\
 e^{-\frac{(-2)^2+1^2}{2 \times 1}}   &   e^{-\frac{(-1)^2+1^2}{2 \times 1}}   &    e^{-\frac{0^2+1^2}{2 \times 1}}   &     e^{-\frac{1^2+1^2}{2 \times 1}}    &     e^{-\frac{2^2+1^2}{2 \times 1}}    &  \\
@@ -61,13 +61,22 @@ e^{-\frac{(-2)^2+(-2)^2}{2 \times 1}}&   e^{-\frac{(-1)^2+(-2)^2}{2 \times 1}}& 
 \end{bmatrix}
 $$
 $$
-\frac{1}{25}
+\frac{1}{4e^{-2} + 8e^{-\frac{3}{2}} + 8e^{-1} + 4e^{-\frac{1}{2}} + 1}
 \begin{bmatrix}
 e^{-2}          &   e^{-\frac{3}{2}}&   e^{-1}          &   e^{-\frac{3}{2}}&    e^{-2}          &  \\
 e^{-\frac{3}{2}}&   e^{-1}          &   e^{-\frac{1}{2}}&   e^{-1}          &    e^{-\frac{3}{2}}&  \\
-e^{-\frac{1}{2}}&   e^{-\frac{1}{2}}&   1               &   e^{-\frac{1}{2}}&    e^{-1}          &  \\
+e^{-1}          &   e^{-\frac{1}{2}}&   1               &   e^{-\frac{1}{2}}&    e^{-1}          &  \\
 e^{-\frac{3}{2}}&   e^{-1}          &   e^{-\frac{1}{2}}&   e^{-1}          &    e^{-\frac{3}{2}}&  \\
 e^{-2}          &   e^{-\frac{3}{2}}&   e^{-1}          &   e^{-\frac{3}{2}}&    e^{-2}          &  \\
+\end{bmatrix}
+$$
+$$
+\begin{bmatrix}
+.003765 & .015019 & .023792 & .015019 & .003765 &  \\
+.015019 & .059912 & .094907 & .059912 & .015019 &  \\
+.023792 & .094907 & .150342 & .094907 & .023792 &  \\
+.015019 & .059912 & .094907 & .059912 & .015019 &  \\
+.003765 & .015019 & .023792 & .015019 & .003765 &  \\
 \end{bmatrix}
 $$
 
