@@ -1,7 +1,7 @@
 %{
     Damien Prieur
     CS 435
-    Assignment 1
+    Assignment 2
 %}
 
 %% Global Setup
@@ -99,18 +99,7 @@ saveas(gcf, strcat(output_location_prefix, 'Q2_exposure_vs_intensity.png'));
 
 % possible pixel values = 256 (0-255)
 
-%vals = 4;
-%pixel_loc = [1 1; 2 2];
-%images_a = zeros(3,2,2);
-%images_a(1, 1,1) = 0;
-%images_a(2, 1,1) = 1;
-%images_a(3, 1,1) = 2;
-%images_a(1, 2,2) = 3;
-%images_a(2, 2,2) = 3;
-%images_a(3, 2,2) = 3;
-%exposures_tmp = [.5 1 2];
-
-number_of_pixels = 500;
+number_of_pixels = 300;
 
 random_pixel_locations = zeros(number_of_pixels, 2);
 
@@ -197,10 +186,6 @@ saveas(gcf, strcat(output_location_prefix, 'Q3_exposure_vs_log_irradiance_Blue.p
 % For each color channel compute the new pixel value to be the average of the pixel's irradiance values from all exposures.
 
 generated_hdr_image = zeros(size(img_read_in));
-
-%log_exposures
-%log_irradiance_mapping(input, color);
-%images(exposure, x, y, color)
 
 g_images = images;
 g_images(:,:,:,1) = arrayfun(@(x) log_irradiance_mapping(x+1,1), images(:,:,:,1));

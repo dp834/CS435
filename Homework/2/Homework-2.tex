@@ -61,22 +61,13 @@ e^{-\frac{(-2)^2+(-2)^2}{2 \times 1}}&   e^{-\frac{(-1)^2+(-2)^2}{2 \times 1}}& 
 \end{bmatrix}
 $$
 $$
-\frac{1}{4e^{-2} + 8e^{-\frac{3}{2}} + 8e^{-1} + 4e^{-\frac{1}{2}} + 1}
+\frac{1}{4e^{-4} + 4e^{-2} + 8e^{-\frac{5}{2}} + 4e^{-1} + 4e^{-\frac{1}{2}} + 1}
 \begin{bmatrix}
-e^{-2}          &   e^{-\frac{3}{2}}&   e^{-1}          &   e^{-\frac{3}{2}}&    e^{-2}          &  \\
-e^{-\frac{3}{2}}&   e^{-1}          &   e^{-\frac{1}{2}}&   e^{-1}          &    e^{-\frac{3}{2}}&  \\
-e^{-1}          &   e^{-\frac{1}{2}}&   1               &   e^{-\frac{1}{2}}&    e^{-1}          &  \\
-e^{-\frac{3}{2}}&   e^{-1}          &   e^{-\frac{1}{2}}&   e^{-1}          &    e^{-\frac{3}{2}}&  \\
-e^{-2}          &   e^{-\frac{3}{2}}&   e^{-1}          &   e^{-\frac{3}{2}}&    e^{-2}          &  \\
-\end{bmatrix}
-$$
-$$
-\begin{bmatrix}
-.003765 & .015019 & .023792 & .015019 & .003765 &  \\
-.015019 & .059912 & .094907 & .059912 & .015019 &  \\
-.023792 & .094907 & .150342 & .094907 & .023792 &  \\
-.015019 & .059912 & .094907 & .059912 & .015019 &  \\
-.003765 & .015019 & .023792 & .015019 & .003765 &  \\
+e^{-4}          &   e^{-\frac{5}{2}}&   e^{-2}          &   e^{-\frac{5}{2}}&    e^{-4}          &  \\
+e^{-\frac{5}{2}}&   e^{-1}          &   e^{-\frac{1}{2}}&   e^{-1}          &    e^{-\frac{5}{2}}&  \\
+e^{-2}          &   e^{-\frac{1}{2}}&   1               &   e^{-\frac{1}{2}}&    e^{-2}          &  \\
+e^{-\frac{5}{2}}&   e^{-1}          &   e^{-\frac{1}{2}}&   e^{-1}          &    e^{-\frac{5}{2}}&  \\
+e^{-4}          &   e^{-\frac{5}{2}}&   e^{-2}          &   e^{-\frac{5}{2}}&    e^{-4}          &  \\
 \end{bmatrix}
 $$
 
@@ -132,7 +123,8 @@ On BBlearn you have been provided with a directory, \emph{memorial}.  This direc
 Next, select $three$ pixel locations and plot the values in their \emph{red channel} as a function of $\Delta t_j$, where $\Delta t_j$ is the exposure length for image $j$.  This is akin to plotting the \emph{log irradiance} as a function of the exposure length, but with an identity log irradiance function.\\
 
 \begin{figure}[h]
-    \includegraphics{images/generated/Q2_exposure_vs_intensity.png}
+    \centering
+    \subfloat[Exposure vs Intensity]{\includegraphics[scale=.75]{images/generated/Q2_exposure_vs_intensity.png}}
 \end{figure}
 
 \newpage
@@ -143,17 +135,11 @@ Using the technique discussed in class, find the log irradiance function $g(z_{i
 \emph{NOTE:  The more pixels you use to solve the system the better.  That being said, the more pixels you use the larger the matrix to invert will becomes.   Therefore experiment with how many pixels to use.}
 
 \begin{figure}[h]
-    \includegraphics{images/generated/Q3_exposure_vs_log_irradiance_Red.png}
-    \caption {Red Channel Exposure vs Log Irradiance}
-\end{figure}
-\begin{figure}[h]
-    \includegraphics{images/generated/Q3_exposure_vs_log_irradiance_Green.png}
-    \caption {Green Channel Exposure vs Log Irradiance}
-\end{figure}
-
-\begin{figure}[h]
-    \includegraphics{images/generated/Q3_exposure_vs_log_irradiance_Blue.png}
-    \caption {Blue Channel Exposure vs Log Irradiance}
+    \centering
+    \subfloat[Red Channel Exposure vs Log Irradiance]{\includegraphics[scale=.5]{images/generated/Q3_exposure_vs_log_irradiance_Red.png}}
+    \subfloat[Green Channel Exposure vs Log Irradiance]{\includegraphics[scale=.5]{images/generated/Q3_exposure_vs_log_irradiance_Green.png}}
+    \\
+    \subfloat[Blue Channel Exposure vs Log Irradiance]{\includegraphics[scale=.5]{images/generated/Q3_exposure_vs_log_irradiance_Blue.png}}
 \end{figure}
 
 \newpage
@@ -165,8 +151,8 @@ Now that we have our log irradiance functions we can combine our images taken wi
 For each color channel, go through all the pixel locations and compute the new pixel value to be the average of the pixel's irradiance values from the different exposure length images (making use of the associated channel's log irradiance function, and that image's exposure time).\\  
 
 \begin{figure}[h]
-    \includegraphics{images/generated/Q4_generated_hdr.png}
-    \caption{Generated HDR Image without tonemapping}
+    \centering
+    \subfloat[Generated HDR Image without tonemapping]{\includegraphics[scale=.5]{images/generated/Q4_generated_hdr.png}}
 \end{figure}
 
 \newpage
@@ -177,8 +163,8 @@ HDR images cannot be viewed on devices that only support low dynamic range. To b
 \noindent
 Tonemap each channel of your HDR image by compressing its values using the compresion function $f(x)=\frac{x}{1+x}$ , then scaling its values to $[0,255]$, then casting it as an unsigned 8-bit integer. 
 \begin{figure}[h]
-    \includegraphics{images/generated/Q5_tonemapped_image.png}
-    \caption{Generated HDR Image with tonemapping}
+    \centering
+    \subfloat[Generated HDR Image with tonemapping]{\includegraphics[scale=.5]{images/generated/Q5_tonemapped_image.png}}
 \end{figure}
 
 \end{document}
