@@ -28,32 +28,51 @@ original_img_2 = imread(image_2_location);
 new_width = 1000;
 new_height = 1000;
 
+fprintf('Resizing image 1 to %dx%d with nearest neighbor\n', new_width, new_height);
 img = nearest_neighbor_resize(original_img_1, new_width, new_height);
 imwrite(uint8(img), strcat(output_location_prefix, 'Q2_img_1_nearest_1.png'));
+fprintf('Done\n');
 
+fprintf('Resizing image 1 to %dx%d with linear interpolation\n', new_width, new_height);
 img = linear_interpolation_resize(original_img_1, new_width, new_height);
 imwrite(uint8(img), strcat(output_location_prefix, 'Q2_img_1_linear_1.png'));
+fprintf('Done\n');
+
+fprintf('Resizing image 2 to %dx%d with nearest neighbor\n', new_width, new_height);
 
 img = nearest_neighbor_resize(original_img_2, new_width, new_height);
 imwrite(uint8(img), strcat(output_location_prefix, 'Q2_img_2_nearest_1.png'));
+fprintf('Done\n');
 
+fprintf('Resizing image 2 to %dx%d with linear interpolation\n', new_width, new_height);
 img = linear_interpolation_resize(original_img_2, new_width, new_height);
 imwrite(uint8(img), strcat(output_location_prefix, 'Q2_img_2_linear_1.png'));
+fprintf('Done\n');
+
 
 new_width = 600;
 new_height = 600;
 
+fprintf('Resizing image 1 to %dx%d with nearest neighbor\n', new_width, new_height);
 img = nearest_neighbor_resize(original_img_1, new_width, new_height);
 imwrite(uint8(img), strcat(output_location_prefix, 'Q2_img_1_nearest_2.png'));
+fprintf('Done\n');
 
+fprintf('Resizing image 1 to %dx%d with linear interpolation\n', new_width, new_height);
 img = linear_interpolation_resize(original_img_1, new_width, new_height);
 imwrite(uint8(img), strcat(output_location_prefix, 'Q2_img_1_linear_2.png'));
+fprintf('Done\n');
 
+fprintf('Resizing image 2 to %dx%d with nearest neighbor\n', new_width, new_height);
 img = nearest_neighbor_resize(original_img_2, new_width, new_height);
 imwrite(uint8(img), strcat(output_location_prefix, 'Q2_img_2_nearest_2.png'));
+fprintf('Done\n');
 
+fprintf('Resizing image 2 to %dx%d with linear interpolation\n', new_width, new_height);
 img = linear_interpolation_resize(original_img_2, new_width, new_height);
 imwrite(uint8(img), strcat(output_location_prefix, 'Q2_img_2_linear_2.png'));
+fprintf('Done\n');
+
 
 
 %% Question 3
@@ -63,12 +82,16 @@ imwrite(uint8(img), strcat(output_location_prefix, 'Q2_img_2_linear_2.png'));
 % Pad the image so that the size doesn't change
 % Compute the energy of each pixel and show the resulting image
 
+fprintf('Creating energy of image 1\n');
 energy_img_1 = get_energy_img(original_img_1);
 imwrite(uint8(energy_img_1), strcat(output_location_prefix, 'Q3_img_1_energy.png'));
+fprintf('Done\n');
 
 
+fprintf('Creating energy of image 2\n');
 energy_img_2 = get_energy_img(original_img_2);
 imwrite(uint8(energy_img_2), strcat(output_location_prefix, 'Q3_img_2_energy.png'));
+fprintf('Done\n');
 
 
 
@@ -84,13 +107,17 @@ test_energy_mat = [
 2 3 3 0 3;
 ];
 
+fprintf('Finding the optimal seam from image 1\n');
 seam = find_optimal_seam(energy_img_1);
 highlighted_seam = highlight_pixels(original_img_1, seam, [255 0 0]);
 imwrite(uint8(highlighted_seam), strcat(output_location_prefix, 'Q4_img_1_highlighted_seam.png'));
+fprintf('Done\n');
 
+fprintf('Finding the optimal seam from image 2\n');
 seam = find_optimal_seam(energy_img_2);
 highlighted_seam = highlight_pixels(original_img_2, seam, [255 0 0]);
 imwrite(uint8(highlighted_seam), strcat(output_location_prefix, 'Q4_img_2_highlighted_seam.png'));
+fprintf('Done\n');
 
 %% Question 5
 % Seam Carving
@@ -98,8 +125,13 @@ imwrite(uint8(highlighted_seam), strcat(output_location_prefix, 'Q4_img_2_highli
 % Then remove that seam and repeat until the image is empty
 % Pad the image so that it remains the same size
 
-tmp = seam_carving_video(original_img_1, strcat(output_location_prefix, 'Q5_seam_carving_video.avi'));
+fprintf('Creating the seam carving video for image 1\n');
+seam_carving_video(original_img_1, strcat(output_location_prefix, 'Q5_img_1_seam_carving_video.mp4'));
+fprintf('Done\n');
 
+fprintf('Creating the seam carving video for image 2\n');
+seam_carving_video(original_img_2, strcat(output_location_prefix, 'Q5_img_2_seam_carving_video.mp4'));
+fprintf('Done\n');
 
 %% Functions
 
@@ -246,7 +278,10 @@ function seam = find_optimal_seam(energy_img)
 
     % First row is just copied
     cumulative_energy(1,:) = energy_img(1,:);
-
+    if(size(energy_img, 2) == 1)
+        seam = ones(size(energy_img));
+        return;
+    end
     for y = 2:size(energy_img, 1)
         % check borders first so that ther are no special cases and can just loop through the rest
 
@@ -289,51 +324,59 @@ function seam = find_optimal_seam(energy_img)
     seam(2,end) = min_weight_ending_index;
 
     for i = (size(seam,2) -1):-1:1
-       seam(2,i) = seam(2,i+1) + path_matrix(i,seam(2,i+1));
+       seam(2,i) = seam(2,i+1) + path_matrix(i+1,seam(2,i+1));
     end
 end
 
 % Given a matrix of points make all thos pixels red
-function img = highlight_pixels(original_img, pixels, color)
-    img = original_img;
+function img = highlight_pixels(img, pixels, color)
     for i = pixels
        img(i(1),i(2),:) = color;
     end
 end
 
-function video = seam_carving_video(original_img, filename)
-    img = original_img;
-    %video = VideoWriter(filename);
-    %open(video);
+function video = seam_carving_video(img, filename)
+    video = VideoWriter(filename, 'MPEG-4');
+    open(video);
+    original_height = size(img,1);
+    original_width = size(img,2);
 
-    for i = 1:size(original_img,2)
+    for i = 1:original_width
+        fprintf('\rSeam carving progress %02d%%', uint8(100*i/original_width));
         energy = get_energy_img(img);
         seam = find_optimal_seam(energy);
         img = highlight_pixels(img, seam, [255 0 0]);
-        frame = pad_columns(img, size(original_img,2));
-        %writeVideo(video, frame);
+        frame = uint8(pad_columns(img, original_width));
+        writeVideo(video, frame);
         img = remove_pixels(img, seam);
 
     end
-
-    %close(video);
+    writeVideo(video, zeros(original_height, original_width));
+    fprintf('\rSeam carving progress 100%%\n');
+    close(video);
 
 end
 
 function cropped_img = remove_pixels(original_img, pixels)
-    cropped_img = reshape(original_img,1,numel(original_img(:,:,1)),3);
+    cropped_img = uint8(zeros(size(original_img,1), size(original_img,2) -1, 3));
     for pixel = pixels
-        cropped_img(pixel(1) * pixel(2) - pixel(1) + 1, :) = [];
+        if(pixel(2) == 1)
+            cropped_img(pixel(1), :, :) = original_img(pixel(1), 2:end, :);
+            continue
+        elseif(pixel(2) == size(original_img,2))
+            cropped_img(pixel(1), :, :) = original_img(pixel(1), 1:(end -1), :);
+        end
+       cropped_img(pixel(1), 1:(pixel(2)-1), :) = original_img(pixel(1), 1:(pixel(2) -1), :);
+       cropped_img(pixel(1), (pixel(2)):end, :) = original_img(pixel(1), (pixel(2)+1):end, :);
     end
-    cropped_img = reshape(cropped_img, size(original_img,1), size(original_img, 2) -1, 3);
 end
 
 function padded_img = pad_columns(original_img, target_width)
     padded_img = zeros(size(original_img,1), target_width, 3);
     columns_to_add = target_width - size(original_img, 2);
-    left_pad  = ceil(columns_to_add / 2);
+    left_pad  = ceil(columns_to_add / 2) + 1;
     right_pad = target_width - floor(columns_to_add / 2);
 
-    padded_img(left_pad+1:right_pad, :, :) = original_img;
+    padded_img(:, left_pad:right_pad, :) = original_img;
 end
 

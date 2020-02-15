@@ -44,7 +44,7 @@ $$
 \begin{bmatrix}
 2&	3&	4&	5&	X\\
 3&	2&	5&	2&	X\\
-6&	5&	7&	1&	X\\
+6&	5&	7&	X&	2\\
 9&	9&	7&	X&	9\\
 13&	12&	9&	X&	9\\
 14&	12&	10&	X&	10\\
@@ -69,9 +69,37 @@ Implement the following resizing techniques:
 
 \noindent
 For your report provide sample I/O for both your test images, using both of these techniques, for two different values of $(w\prime, h\prime)$ (8 total images).
+
+\newpage
+\begin{figure}[h!]
+    \centering
+    \subfloat[Img 1 original]{\includegraphics[scale=.2]{images/Lenna.png}}
+    \\
+    \subfloat[Img 1 Nearest Neighbor 1]{\includegraphics[scale=.2]{images/generated/Q2_img_1_nearest_1.png}}
+    \qquad
+    \subfloat[Img 1 Linear Interpolation 1]{\includegraphics[scale=.2]{images/generated/Q2_img_1_linear_1.png}}
+    \\
+    \subfloat[Img 1 Nearest Neighbor 2]{\includegraphics[scale=.2]{images/generated/Q2_img_1_nearest_2.png}}
+    \qquad
+    \subfloat[Img 1 Linear Interpolation 2]{\includegraphics[scale=.2]{images/generated/Q2_img_1_linear_2.png}}
+\end{figure}
 \newpage
 
-\section{(20 points) Energy Function}
+\begin{figure}[h!]
+    \centering
+    \subfloat[Img 2 original]{\includegraphics[scale=.2]{images/aloeR.jpg}}
+    \\
+    \subfloat[Img 2 Nearest Neighbor 1]{\includegraphics[scale=.2]{images/generated/Q2_img_2_nearest_1.png}}
+    \qquad
+    \subfloat[Img 2 Linear Interpolation 1]{\includegraphics[scale=.2]{images/generated/Q2_img_2_linear_1.png}}
+    \\
+    \subfloat[Img 2 Nearest Neighbor 2]{\includegraphics[scale=.2]{images/generated/Q2_img_2_nearest_2.png}}
+    \qquad
+    \subfloat[Img 2 Linear Interpolation 2]{\includegraphics[scale=.2]{images/generated/Q2_img_2_linear_2.png}}
+\end{figure}
+\newpage
+
+\section{Energy Function}
 We're also going to want to explore seam carving.  The first part of that requires computing the energy functions of your images.\\
 
 \noindent
@@ -86,9 +114,15 @@ Some implementation details:
 \item Since you already demonstrated in HW1 your ability to implement RGB to Gray and convolution, for this assignment \textbf{may} use Matlab functions like $conv2, rgb2gray$.
 \end{itemize}
 
+\begin{figure}[h!]
+    \centering
+    \subfloat[Image 1 energy]{\includegraphics[scale=.4]{images/generated/Q3_img_1_energy.png}}
+    \subfloat[Image 2 energy]{\includegraphics[scale=.2]{images/generated/Q3_img_2_energy.png}}
+\end{figure}
+
 \newpage
 
-\section{(20 points) Optimal Seam}
+\section{Optimal Seam}
 Now that you have your energy images, we must find the optimal seam in it.\\
 
 \noindent
@@ -109,9 +143,15 @@ Additional Details:
 
 \noindent
 
+\begin{figure}[h!]
+    \centering
+    \subfloat[Image 1 Optimal Seam]{\includegraphics[scale=.4]{images/generated/Q4_img_1_highlighted_seam.png}}
+    \subfloat[Image 2 Optimal Seam]{\includegraphics[scale=.2]{images/generated/Q4_img_2_highlighted_seam.png}}
+\end{figure}
+
 \newpage
 
-\section{(20 points) Seam Carving}
+\section{Seam Carving}
 Finally, let's use seam carving to reduce the aspect ratio. Since we found the optimal \emph{vertical} seam in the previous part, we'll just reduce the width, from it's original width down to one pixel wide. \\
 
 \noindent
