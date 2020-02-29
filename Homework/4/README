@@ -1,0 +1,23 @@
+MATLAB:
+FILE: Homework4.m
+
+Each question is in its own section labeled both just call the same function with different parameters which just changes how the feature vectors are generated.
+
+The function are all in their own section at the bottom of the file
+    each has a short description before it explaining what it does
+    if there are complicated parts there is an explanation for it
+
+IMAGES (converted images to png for latex file):
+src = images/
+testdata = CarData/
+
+To Run either open "Homework4.m" in matlab and run or use the make file to run it for you.
+
+make run
+
+or from cli you can use
+
+matlab -nodisplay -nosplash -batch "run('Homework4.m')"
+
+just be in the root of this directory
+
