@@ -14,16 +14,16 @@ output_location_prefix = 'images/generated/';
 delete('images/generated/*');
 fprintf('Cleaned "images/generated"\n');
 
-%image_1_location = 'images/left.jpg';
-image_1_location = 'images/im1.jpg';
+image_1_location = 'images/left.jpg';
+%image_1_location = 'images/im1.jpg';
 left_img = imread(image_1_location);
 % Images are rotated for some reason so just transpose them
-%left_img = rot90(left_img, 3);
+left_img = rot90(left_img, 3);
 
-%image_2_location = 'images/right.jpg';
-image_2_location = 'images/im2.jpg';
+image_2_location = 'images/right.jpg';
+%image_2_location = 'images/im2.jpg';
 right_img = imread(image_2_location);
-%right_img = rot90(right_img, 3);
+right_img = rot90(right_img, 3);
 
 %% User-Defined Constants
 NUM_OCTAVES = 4;
@@ -61,15 +61,96 @@ target = [ 546, 1228; ...
 
 %stitched_image = stitch_images(left_img, right_img, source, target, @linear_interpolation);
 %stitched_image = stitch_images(right_img, left_img, target, source, @linear_interpolation);
-stitched_image = stitch_images(left_img, right_img, source, target, @fast_interp);
+%stitched_image = stitch_images(left_img, right_img, source, target, @fast_interp);
 %stitched_image = stitch_images(right_img, left_img, target, source, @fast_interp);
+
+%imshow(stitched_image);
+
+%% Question 3
+% Compute Scale Space Pyramid
+fprintf('Starting Scale Space Pyramid\n');
+img1 = left_img;
+img2 = right_img;
+
+
+img1_scale_space = compute_scale_space(img1, NUM_OCTAVES, NUM_SCALES, REDUCTION_FACTOR);
+img2_scale_space = compute_scale_space(img2, NUM_OCTAVES, NUM_SCALES, REDUCTION_FACTOR);
+
+%% Question 4
+% Find keypoints from local maxima of difference of gaussians
+% Prune keypoints:
+%   Eliminate extrema too close to boarder (based on kernel size of next part)
+%   Find the standard deviation around each keypoint, filter those with a std < thresh due to low contrast
+% Compute Local Maxima
+fprintf('Starting DoG/maxima img1\n');
+
+img1_DoG = compute_dog(img1_scale_space);
+img1_local_maxima = compute_local_maxima(img1, img1_DoG);
+
+fprintf('Starting DoG/maxima img2\n');
+img2_DoG = compute_dog(img2_scale_space);
+img2_local_maxima = compute_local_maxima(img2, img2_DoG);
+%%
+fprintf('Starting pruning, rest is fast\n');
+
+img2_key_points = prune_unstable_maxima(img2, img2_local_maxima);
+img1_key_points = prune_unstable_maxima(img1, img1_local_maxima);
+
+% Question 5
+% Find matching keypoints
+% For each keypoint compute a feature vector and look for a match in the other set of keypoints
+
+img1_feature_vectors = get_features_from_key_points(img1, img1_key_points);
+img2_feature_vectors = get_features_from_key_points(img2, img2_key_points);
+
+% keypoint matching
+
+key_point_correspondences = [];
+
+img1_pairs = zeros(size(img1_feature_vectors, 2),2);
+
+for i = 1:size(img1_pairs,1)
+    img1_pairs(i,:) = [i get_most_similar_fv(img1_feature_vectors(:,i), img2_feature_vectors)];
+end
+
+img2_pairs = zeros(size(img2_feature_vectors, 2),2);
+
+for i = 1:size(img2_pairs,1)
+    img2_pairs(i,:) = [get_most_similar_fv(img2_feature_vectors(:,i), img1_feature_vectors) i];
+    if(img1_pairs(img2_pairs(i,1),2) == i)
+        key_point_correspondences(end+1, :) = [img2_pairs(i,1), i];
+    end
+end
+
+% Draw both images and mark the key point correspondences
+img_out = [img1 img2];
+imshow(img_out);
+img1_key_point_correspondences = [];
+img2_key_point_correspondences = [];
+for i = 1:size(key_point_correspondences,1)
+    img1_key_point_correspondences(end+1, :) = img1_key_points(key_point_correspondences(i,1),:);
+    img2_key_point_correspondences(end+1, :) = img2_key_points(key_point_correspondences(i,2),:);
+    draw_line(img1_key_point_correspondences(end,:), img2_key_point_correspondences(end,:), size(img1,2));
+end
+saveas(gcf, strcat(output_location_prefix, 'key_point_correspondences.png'));
+
+%%
+
+[img1_points, img2_points] = ransac(img1_key_point_correspondences, img2_key_point_correspondences, 4, 20000,h);
+img1_points
+img2_points
+stitched_image = stitch_images(img1, img2, img1_points, img2_points, @fast_interp);
 
 imshow(stitched_image);
 
-%% Question 3
-%
+%%
 
-%% Functions
+h = compute_transformation_matrix(source, target);
+a = map_multiple_points(source,h)
+target - a
+
+
+% Functions
 function H = compute_transformation_matrix(source_points, target_points)
 
     if(size(source_points) ~= size(target_points))
@@ -272,9 +353,7 @@ end
 % Input: Image and location (x,y) of keypoint
 % Output: Descriptor Vector
 function descriptor_vector = compute_descriptor(img, x, y, descriptor_func)
-    new_img(:,:,:) = padarray(img, [9 9]);
-    region = descriptor_func(y-4:y+4,x-4:x+4,:);
-    descriptor_vector = reshape(region, 9*9*3, 1);
+    descriptor_vector = descriptor_func(img, x, y);
 end
 
 
@@ -293,57 +372,37 @@ end
 % Input: Cell Array containg DoG across different octaves
 % Output: Binary matrix of local maxima
 function output_img = compute_local_maxima(img, DoG)
-    output_img = zeros(size(img));
+    output_img = zeros(size(img,1),size(img,2));
     octave_count = size(DoG, 1);
     scale_count = size(DoG, 2);
 
     for octave=1:octave_count
-        scale_factor = 2^(octave-1);
         for scale=1:scale_count
-            img = DoG{octave}{scale};
-            for y=2:size(img, 1)-1
-                for x=2:size(img, 2)-1
+            DoG{octave, scale} = padarray(DoG{octave, scale}, [1, 1]);
+        end
+    end
 
-                   points_to_test = generate_potential_local_maxima(x, y, scale, octave, DoG);
-                   maxima = max(points_to_test(:));
+    for octave=1:octave_count
+        scale_factor = 2^(octave-1);
+        DoG_octave = zeros(size(DoG{octave, 1}, 1), size(DoG{octave, 1},2), 2 + scale_count);
 
-                   val = img(y,x);
-                   if val > maxima
-                       y_loc = y*scale_factor;
-                       x_loc = x*scale_factor;
-                       output_img(x_loc, y_loc) = 1;
-                   end
+        for scale=1:scale_count
+            DoG_octave(:,:,scale+1) = DoG{octave, scale};
+        end
+
+
+        for x = 2:size(DoG_octave,2)-1
+            for y = 2:size(DoG_octave,1)-1
+                for z = 2:size(DoG_octave,3)-1
+                    % Look at the cube around the point and if it's the max then we mark it as a max
+                    if(3*3+5 == find(DoG_octave(y-1:y+1,x-1:x+1,z-1:z+1) == max(DoG_octave(y-1:y+1,x-1:x+1,z-1:z+1), [], 'all')))
+                        output_img((y-1)*scale_factor, (x-1)*scale_factor) = 1;
+                    end
                 end
             end
         end
+
     end
-end
-
-function points = generate_potential_local_maxima(x, y, scale, octave, DoG)
-    points = zeros(3,3,3);
-    y = y+1;
-    x = x+1;
-
-    curr_DoG = DoG{octave}{scale};
-    curr_DoG = padarray(curr_DoG, [1 1]);
-
-    if scale > 1
-        higher_DoG = DoG{octave}{scale-1};
-        higher_DoG = padarray(higher_DoG, [1 1]);
-        points(3,:,:) = higher_DoG(y-1:y+1,x-1:x+1);
-    end
-
-    if scale < size(DoG, 2)
-        lower_DoG = DoG{octave}{scale+1};
-        lower_DoG = padarray(lower_DoG, [1 1]);
-        points(1,:,:) = lower_DoG(y-1:y+1,x-1:x+1);
-    end
-
-    points(2,1,:) = curr_DoG(y-1,x-1:x+1);
-    points(2,2,1) = curr_DoG(y,x-1);
-    points(2,2,2) = 0;
-    points(2,2,3) = curr_DoG(y,x+1);
-    points(2,3,:) = curr_DoG(y+1,x-1:x+1);
 end
 
 % Computes Difference of Gaussian in Image Pyramid
@@ -355,7 +414,7 @@ function DoG = compute_dog(scale_space)
     DoG = cell(octave_count,scale_count-1);
     for octave=1:octave_count
         for scale=1:scale_count-1
-            DoG{octave}{scale} = scale_space{octave}{scale+1} - scale_space{octave}{scale};
+            DoG{octave, scale} = scale_space{octave, scale+1} - scale_space{octave, scale};
         end
     end
 end
@@ -371,29 +430,12 @@ function scale_space = compute_scale_space(im, octave_count, scale_count, reduct
         for scale=1:scale_count
             gauss_kernel = gaussian_filter(ceil(3*sigma), sigma);
             smoothed_gray = conv2(img, gauss_kernel, 'same');
-            scale_space{octave}{scale} = uint8(smoothed_gray);
+            scale_space{octave, scale} = uint8(smoothed_gray);
             sigma = sigma * sqrt(2);
         end
         img = img(1:reduction_factor:end, 1:reduction_factor:end, :);
     end
 end
-function scale_space = compute_scale_space2(im, octave_count, scale_count, reduction_factor)
-    img = rgb2gray(im);
-    scale_space = cell(4,5);
-    sigma = 1.6;
-    orig_img(:,:) = img(:,:);
-    for scale=1:scale_count
-        gauss_kernel = gaussian_filter(ceil(3*sigma), sigma);
-        img = orig_img(:,:);
-        for octave=1:octave_count
-            smoothed_gray = conv2(img, gauss_kernel, 'same');
-            scale_space{octave}{scale} = uint8(smoothed_gray);
-            img = img(1:reduction_factor:end, 1:reduction_factor:end, :);
-        end
-        sigma = sigma * sqrt(2);
-    end
-end
-
 
 function visualize_scale_space(scale_space)
     octaves = size(scale_space, 1);
@@ -402,7 +444,7 @@ function visualize_scale_space(scale_space)
     for y=1:octaves
         for x=1:scales
             subplot(octaves, scales, scales*(y-1) + x);
-            imshow(scale_space{y}{x});
+            imshow(scale_space{y, x});
             axis on;
         end
     end
@@ -415,4 +457,201 @@ function f=gaussian_filter(n,s)
     [Y,X] = meshgrid(x,x);
     f = exp( -(X.^2+Y.^2)/(2*s^2) );
     f = f / sum(f(:));
+end
+
+function key_points = prune_unstable_maxima(img, candidates)
+    % Compute Edge Pixels
+    edge_points = edge(rgb2gray(img));
+
+    % The patch will go this count in all directions to make the patch
+    % So a WIDTH of 4 will be a 9x9 patch
+    WIDTH = 4;
+    % Since i will be adding each color channel divide by 3
+    CONTRAST_THRESH = 50*3;
+
+    % Remove all points that are too close to the edge to get a contrast reading
+    candidates(1:WIDTH,:) = 0;
+    candidates(:,1:WIDTH) = 0;
+    candidates(end-WIDTH:end,:) = 0;
+    candidates(:,end-WIDTH:end) = 0;
+    
+    % Canditate point is on an edge we throw it out
+    candidates(candidates == edge_points) = 0;
+
+    [ys, xs] = find(candidates);
+
+    for i = 1:numel(ys)
+        % find the std_dev of brightness for each color channel
+        std_dev = std(double(img(ys(i)-WIDTH:ys(i)+WIDTH, xs(i)-WIDTH:xs(i)-WIDTH, :)), 0, [1 2]);
+        if(sum(std_dev, 'all') < CONTRAST_THRESH)
+           candidates(ys(i), xs(i)) = 0; 
+        end
+    end
+    
+    [row,col] = find(candidates);
+
+    key_points = [col, row];
+end
+
+function fv = hog_fv(img, x, y)
+    chunk_width  = 8;
+    chunk_height = 8;
+    gradient_bins = 8;
+
+    fv = compute_gradient_bins(img(y-chunk_height:y+chunk_height, x-chunk_width:x+chunk_width, :), gradient_bins);
+end
+
+function fv = rgb_fv(img, x, y)
+    fv = img(y-4:y+4,x-4:x+4,:);
+    fv = reshape(fv, numel(fv),1);
+end
+
+% Compute the gradient and place them into bins
+function bins = compute_gradient_bins(img, bin_count)
+    if(size(img,3) == 3)
+        img = rgb2gray(img);
+    end
+
+    % compute gradients
+    partial_x_convolution = [
+    1/3 0 -1/3 ;
+    1/3 0 -1/3 ;
+    1/3 0 -1/3 ; ];
+
+    partial_y_convolution = [
+     1/3  1/3  1/3 ;
+      0    0    0  ;
+    -1/3 -1/3 -1/3 ; ];
+
+    partial_x_img = conv2(img, partial_x_convolution, 'same');
+    partial_y_img = conv2(img, partial_y_convolution, 'same');
+
+    partial_x_img = reshape(partial_x_img, [1 numel(partial_x_img)]);
+    partial_y_img = reshape(partial_y_img, [1 numel(partial_y_img)]);
+
+    % place gradients into bins
+    bins = zeros(bin_count,1);
+
+    bin_width = 2*pi/bin_count;
+
+    for i = 1:size(partial_x_img,2)
+        % if no gradient information skip
+        if(partial_y_img(i) == 0 && partial_x_img(i) == 0)
+            continue
+        end
+        val = atan2(-partial_y_img(i), partial_x_img(i));
+
+        % atan2 returns values from [-pi, pi] but i want [0, 2pi]
+        % values that are negative are really just 2pi away
+        if(val < 0)
+            val = 2*pi + val;
+        end
+
+        % can't have zero so force it to map to the first bin
+        if(val == 0)
+            val = bin_width;
+        end
+
+        bins(ceil(val/bin_width)) = bins(ceil(val/bin_width)) + 1;
+    end
+end
+
+function features = get_features_from_key_points(img, key_points)
+    xs = key_points(:,1);
+    ys = key_points(:,2);
+    img = padarray(img, [9 9]);
+   features = zeros(8+3+1, numel(xs));
+    %features = zeros(9*9*3+3+1, numel(xs));
+    for i = 1:numel(xs)
+        features(1:end-1-3, i) = compute_descriptor(img, xs(i)+9, ys(i)+9, @hog_fv);
+        %features(1:end-1-3, i) = compute_descriptor(img, xs(i)+9, ys(i)+9, @rgb_fv);
+        features(end-2:end,i) = img(ys(i), xs(i),:);
+    end
+    features(end, :) = ys;
+end
+
+function index = get_most_similar_fv(source, tests)
+    index = sort_by_similarity(source, tests, @histogram_similarity);
+end
+
+% given an array of features, a feature to compare to, and similarity_func will return a ordered list based on similarity
+function most_similar = sort_by_similarity(source_fv, tests_fv, similarity_func)
+    % index into original list, similarity
+    similarities = zeros(size(tests_fv,2), 1);
+    for item = 1:size(tests_fv,2)
+        similarities(item) = similarity_func(tests_fv(:,item), source_fv);
+    end
+    sort(similarities, 'descend');
+    [~, most_similar] = min(similarities);
+
+end
+
+% compute similarity of two histogram feature vectors
+function similarity = histogram_similarity(hist_a, hist_b)
+    similarity = 0;
+    for bin = 1:size(hist_a,1)-3-1
+        similarity = similarity + min(hist_a(bin), hist_b(bin));
+        %similarity = similarity + abs(hist_a(bin) - hist_b(bin));
+    end
+    
+    for bin = size(hist_a,1)-3-1:size(hist_a,1)
+       similarity = similarity + abs(hist_a(bin)-hist_b(bin));
+    end
+    %similarity = similarity*abs(10 - abs(hist_a(end)-hist_b(end))); 
+end
+
+function [kp_source_p, kp_target_p]= ransac(kp_source, kp_target, num_points, iter_count, h)
+    min_dist = exp(1000);
+    
+    random_source = zeros(num_points,2);
+    random_target = zeros(num_points,2);
+	for iter=1:iter_count
+        % Select `num_points` from source and targeted keypoints
+        random_inds = randperm(size(kp_source, 1), num_points);    
+        for i=1:num_points
+            random_source(i,:) = kp_source(random_inds(i),:);
+            random_target(i,:) = kp_target(random_inds(i),:);
+        end    
+        % Compute transformation matrix from random points
+        h_mat = compute_transformation_matrix(random_source, random_target);
+        % Project source points using transformation matrix
+        kp_projected = map_multiple_points(kp_source, h);
+        % Compute distance from projected to target points
+        euclid_dist = sqrt(sum((kp_projected - kp_target) .^ 2,'all'))
+        euclid_dist = norm(kp_projected - kp_target)
+        fprintf('--\n');
+        % Check if distance is smaller than previous min distance
+        if euclid_dist < min_dist
+            min_inds = random_inds;
+            min_dist = euclid_dist;
+        end
+    end
+    kp_source_p = kp_source(min_inds,:);
+    kp_target_p = kp_target(min_inds,:);
+end
+
+
+function projected_points = map_multiple_points(source_vector, H)
+    % Append column of ones to act as `z`
+    z_col = ones(size(source_vector, 1), 1);
+    source_vector = [source_vector z_col];
+
+    % Project source points using transformation matrix
+    source_vector = H * (source_vector');
+    xs = source_vector(1, :);
+    ys = source_vector(2, :);
+    ws = source_vector(3, :);
+
+    % Scale projected points correctly
+    xs = xs ./ ws;
+    ys = ys ./ ws;
+    projected_points(:,1) = xs;
+    projected_points(:,2) = ys;
+end
+
+function draw_line(coord1, coord2, width)
+    hold on
+    line([coord1(1) (coord2(1)+width)], [coord1(2) coord2(2)],'Color', 'red');
+    hold off
+    axis equal
 end
