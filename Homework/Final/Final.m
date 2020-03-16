@@ -19,9 +19,9 @@ delete('images/generated/*');
 fprintf('Cleaned "images/generated"\n');
 
 % Read images
-image_1_location = 'images/im1.jpg';
+image_1_location = 'images/img1.jpg';
 im1 = imread(image_1_location);
-image_2_location = 'images/im2.jpg';
+image_2_location = 'images/img2.jpg';
 im2 = imread(image_2_location);
 
 
@@ -126,8 +126,6 @@ end
 draw_point_correspondences(im1, im2, img1_key_point_correspondences, img2_key_point_correspondences, 'final_automatic_point_correspondences.png');
 
 
-
-
 %% Question 6 - Find the Transformation Matrix via RANSAC and Stitch
 
 % Run RANSAC and get transformation points
@@ -137,6 +135,32 @@ draw_point_correspondences(im1, im2, img1_points, img2_points, 'final_selected_p
 % Stitch images and write to file
 automatic_stitched_image = stitch_images(im1, im2, img1_points, img2_points, @linear_interpolation);
 imwrite(automatic_stitched_image, strcat(OUTPUT_LOCATION_PREFIX, 'final_automatic_stitched.png'));
+
+%% Extra credit stitch multiple images, this is slow sorry
+imgs = {'images/7.jpg', 'images/6.jpg', 'images/5.jpg', 'images/4.jpg', 'images/3.jpg', 'images/2.jpg', 'images/1.jpg', 'images/0.jpg'};
+for i = 1:size(imgs,2)
+    imgs{i} = imread(imgs{i});
+end
+img_left  = [];
+img_right = imgs{1};
+
+for i = 2:size(imgs,2)
+    img_left  = img_right;
+    img_right = imgs{i};
+
+    [left_key_points, right_key_points] = get_key_point_correspondeces(img_left,img_right);
+    H = compute_transformation_matrix(left_key_points, right_key_points);
+    [new_image_size, origin] = get_combined_size(img_left, img_right, H);
+
+    % Save to img_right so that the loop will work
+    img_right = merge_images_multipass(img_left, img_right, H, new_image_size, origin, @fast_interp);
+end
+%
+
+img_right(img_right == -1) = 0;
+cool_img = img_right;
+imshow(cool_img);
+
 % Functions
 
 
@@ -274,7 +298,7 @@ function output_img = compute_local_maxima(img, DoG)
                 for z = 2:size(DoG_octave,3)-1
                     % Look at the cube around the point and if it's the max then we mark it as a max
                     if(3*3+5 == find(DoG_octave(y-1:y+1,x-1:x+1,z-1:z+1) == max(DoG_octave(y-1:y+1,x-1:x+1,z-1:z+1), [], 'all')))
-                        output_img((y-1)*scale_factor, (x-1)*scale_factor) = 1;
+                        output_img((y-1)*(scale_factor-1)+1, (x-1)*(scale_factor-1)+1) = 1;
                     end
                 end
             end
@@ -299,16 +323,14 @@ function draw_extrema_points(mat, img, fname)
     radius=0.5;
     hold on;
     for k=1:size(x,1)
-        theta=0:0.01:2*pi; 
+        theta=0:0.01:2*pi;
         xval=radius*cos(theta);
         yval=radius*sin(theta);
         plot(y(k)+xval,x(k)+yval, 'r');
-    end 
+    end
     hold off;
-    fig = gcf;
-    fig.PaperPositionMode = 'auto';
     saveas(gcf, strcat(OUTPUT_LOCATION_PREFIX, fname));
-    close(figure);
+    close(gcf);
 end
 
 
@@ -320,7 +342,7 @@ function key_points = prune_unstable_maxima(img, candidates)
     % So a WIDTH of 4 will be a 9x9 patch
     WIDTH = 4;
     % Since i will be adding each color channel divide by 3
-    CONTRAST_THRESH = 70*3;
+    CONTRAST_THRESH = 60*3;
 
     % Remove all points that are too close to the edge to get a contrast reading
     candidates(1:WIDTH,:) = 0;
@@ -397,10 +419,8 @@ function draw_point_correspondences(im1, im2, source_pts, target_pts, fname)
     for i=1:size(source_pts,1)
         draw_line(source_pts(i,:), target_pts(i,:), size(im1,2));
     end
-    fig = gcf;
-    fig.PaperPositionMode = 'auto';
     saveas(gcf, strcat(OUTPUT_LOCATION_PREFIX, fname));
-    close(figure);
+    close(gcf);
 end
 
 
@@ -694,3 +714,150 @@ function f=gaussian_filter(n,s)
     f = f / sum(f(:));
 end
 
+% Stitches two images from source and target images and interpolation function
+% input is a cell array containing all the images
+function stitched_img = stitch_many_images(imgs)
+    if(size(imgs,2) < 2)
+        stitched_img = imgs{1};
+        return
+    end
+    img_left  = [];
+    img_right = imgs{1};
+
+    for i = 2:size(imgs,2)
+        img_left  = img_right;
+        img_right = imgs{i};
+
+        [left_key_points, right_key_points] = get_key_point_correspondeces(img_left,img_right);
+        H = compute_transformation_matrix(left_key_points, right_key_points);
+        [new_image_size, origin] = get_combined_size(img_left, img_right, H);
+
+        % Save to img_right so that the loop will work
+        img_right = merge_images_multipass(img_left, img_right, H, new_image_size, origin, @fast_interp);
+    end
+    img_right(img_right == -1) = 0;
+    stitched_img = img_right;
+
+end
+
+function [img1_points, img2_points] = get_key_point_correspondeces(img1, img2)
+    img1_scale_space = compute_scale_space(img1);
+    img2_scale_space = compute_scale_space(img2);
+
+
+    img1_DoG = compute_dog(img1_scale_space);
+    img1_local_maxima = compute_local_maxima(img1, img1_DoG);
+
+    img2_DoG = compute_dog(img2_scale_space);
+    img2_local_maxima = compute_local_maxima(img2, img2_DoG);
+
+    img1_key_points = prune_unstable_maxima(img1, img1_local_maxima);
+    img2_key_points = prune_unstable_maxima(img2, img2_local_maxima);
+
+    % Find matching keypoints: For each keypoint compute a feature vector and look for a match in the other set of keypoints
+    img1_feature_vectors = get_features_from_key_points(img1, img1_key_points);
+    img2_feature_vectors = get_features_from_key_points(img2, img2_key_points);
+
+    % Initialize lists
+    key_point_correspondences = [];
+    img1_pairs = zeros(size(img1_feature_vectors, 2),2);
+    img2_pairs = zeros(size(img2_feature_vectors, 2),2);
+
+    % Match keypoints
+    for i = 1:size(img1_pairs,1)
+        img1_pairs(i,:) = [i sort_by_similarity(img1_feature_vectors(:,i), img2_feature_vectors)];
+    end
+    for i = 1:size(img2_pairs,1)
+        img2_pairs(i,:) = [sort_by_similarity(img2_feature_vectors(:,i), img1_feature_vectors) i];
+        if(img1_pairs(img2_pairs(i,1),2) == i)
+            key_point_correspondences(end+1, :) = [img2_pairs(i,1), i];
+        end
+    end
+
+    % Draw both images and mark the key point correspondences
+    img1_key_point_correspondences = [];
+    img2_key_point_correspondences = [];
+    for i = 1:size(key_point_correspondences,1)
+        if abs(img1_key_points(key_point_correspondences(i,1),2) - img2_key_points(key_point_correspondences(i,2),2)) < .10*size(img1, 1)
+            if (size(img1,2) - img1_key_points(key_point_correspondences(i,1),1) + img2_key_points(key_point_correspondences(i,2),1)) < (size(img1,2) + size(img2, 2))/2
+                img1_key_point_correspondences(end+1, :) = img1_key_points(key_point_correspondences(i,1),:);
+                img2_key_point_correspondences(end+1, :) = img2_key_points(key_point_correspondences(i,2),:);
+            end
+        end
+    end
+    draw_point_correspondences(img1, img2, img1_key_point_correspondences, img2_key_point_correspondences, 'asdfsadf.png');
+
+    [img1_points, img2_points] = ransac(img1_key_point_correspondences, img2_key_point_correspondences, log(1-.9)/log(1-.05^4));
+end
+
+function merged_img = merge_images_multipass(img1, img2, H, new_size, origin, interpolation_function)
+    % create output matrix
+    merged_img = uint8(zeros(new_size));
+    origin = double(origin);
+
+    % get our inverse transformation
+    H_inv = inv(H);
+
+    % used to mark if pixel is empty not just black, will be used if stitching many images together
+    EMPTY_PIXEL = [-1,-1,-1];
+    for y = 1:size(merged_img,1)
+        % Gives an idea of where we are at
+        if(mod(y, 500) == 0)
+            fprintf("y = %d : %.02f%%\n", y, y/double(new_size(1)));
+        end
+        for x = 1:size(merged_img,2)
+
+            %iterating over our range
+            range_point = [x, y] - origin;
+            domain_point = map_point(H_inv, [range_point(1); range_point(2); 1]);
+
+            in_range  = range_point(1) >= 1 && range_point(1) <= size(img2, 2) && range_point(2) >= 1 && range_point(2) <= size(img2, 1);
+
+            in_domain = domain_point(1) >= 1 && domain_point(1) <= size(img1, 2) && domain_point(2) >= 1 && domain_point(2) <= size(img1, 1);
+            
+            if(in_domain && in_range)
+                % if location is in both then blend with method of choice
+
+                % TODO make blending a function pass, may need to place all points first then blend with im2
+                % need to talk with Dan
+
+                % going to do simple alpha blending with alpha = .5
+
+                % if point is between locations then interpolate
+                alpha = .5;
+                domain_val = interpolation_function(img1, domain_point);
+                if(domain_val < 0)
+                   alpha = 0; 
+                end
+                new_val = domain_val*alpha;
+                if(new_val < 0)
+                    if(domain_val < 0)
+                        new_val = EMPTY_PIXEL;
+                    else
+                        new_val=domain_val;
+                
+                    end
+                end
+                % range values should not need interpolation as x,y and origin are integers
+                new_val = new_val + img2(range_point(2), range_point(1), :)*(1-alpha);
+            elseif(in_domain)
+                % if location is in our left image and not in right just take left
+                % if point is between locations then interpolate
+                new_val = interpolation_function(img1, domain_point);
+                if(sum(new_val < 0, 'all')>0)
+                   new_val = EMPTY_PIXEL; 
+                end
+            elseif(in_range)
+                % if location is in our right image and not in left just take right
+                % range values should not need interpolation as x,y and origin are integers
+                new_val = img2(range_point(2), range_point(1), :);
+
+            else
+                % if location is in neither then set to black (0 0 0)
+                % mark as not from either, will be mapped to zero
+                new_val = EMPTY_PIXEL;
+            end
+            merged_img(y,x,:) = new_val;
+        end
+    end
+end
