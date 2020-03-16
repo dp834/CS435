@@ -18,13 +18,11 @@ REDUCTION_FACTOR = 2;  % value is squared so images are subsampled to 1/4
 delete('images/generated/*');
 fprintf('Cleaned "images/generated"\n');
 
-
 % Read images
 image_1_location = 'images/im1.jpg';
 im1 = imread(image_1_location);
 image_2_location = 'images/im2.jpg';
 im2 = imread(image_2_location);
-
 
 
 
@@ -149,13 +147,19 @@ imwrite(automatic_stitched_image, strcat(OUTPUT_LOCATION_PREFIX, 'final_automati
 % Marks point correspondences hardcoded
 function mark_hardcoded_points(im1, im2, source_pts, target_pts)
     global OUTPUT_LOCATION_PREFIX
-    
+
     % Show images
-    imshow([im1, im2]);
-    
+    height_pad = size(im1, 1) - size(im2, 1);
+    if(height_pad < 0)
+        im1(end:end-height_pad, :,:) = zeros([-height_pad, size(im1,2), size(im1,3)]);
+    elseif(height_pad > 0)
+        im2(end:end+height_pad, :,:) = zeros([height_pad, size(im2,2), size(im2,3)]);
+    end
+    imshow([im1 im2]);
+
     % Define point colors
     colors = ['r', 'y', 'g', 'b'];
-    
+
     % Draw circles at all point correspondences
     for i=1:size(source_pts,1)
         draw_circle(source_pts(i,1),source_pts(i,2),25,colors(i),1);
@@ -163,7 +167,7 @@ function mark_hardcoded_points(im1, im2, source_pts, target_pts)
     for i=1:size(target_pts,1)
         draw_circle(target_pts(i,1)+size(im1,2),target_pts(i,2),25,colors(i),1);
     end
-    
+
     % Save image
     saveas(gcf, strcat(OUTPUT_LOCATION_PREFIX, 'final_hardcoded_points.png'));
     close(gcf);
@@ -373,6 +377,14 @@ end
 % Draw point correspondences and write to file
 function draw_point_correspondences(im1, im2, source_pts, target_pts, fname)
     global OUTPUT_LOCATION_PREFIX
+
+    height_pad = size(im1, 1) - size(im2, 1);
+    if(height_pad < 0)
+        im1(end:end-height_pad, :,:) = zeros([-height_pad, size(im1,2), size(im1,3)]);
+    elseif(height_pad > 0)
+        im2(end:end+height_pad, :,:) = zeros([height_pad, size(im2,2), size(im2,3)]);
+    end
+
     imshow([im1 im2]);
     for i=1:size(source_pts,1)
         draw_line(source_pts(i,:), target_pts(i,:), size(im1,2));
@@ -407,7 +419,7 @@ function [kp_source_p, kp_target_p]= ransac(kp_source, kp_target, iter_count)
         for i=1:NUM_POINTS
             random_source(i,:) = kp_source(random_inds(i),:);
             random_target(i,:) = kp_target(random_inds(i),:);
-        end    
+        end
         % Compute transformation matrix from random points
         h_mat = compute_transformation_matrix(random_source, random_target);
         % Project source points using transformation matrix
@@ -506,7 +518,7 @@ function [new_size, origin] = get_combined_size(img1, img2, H)
 
     % we find the origin here because I don't want to recompute the corner points
 
-    % one of the 4 outer corners is going to be mapped to a corner
+    % one of the 8 corners is going to be mapped to a corner
     % if we know which corner is mapped to its corner then we can work backwards to find the
     % origin of the output plane
     %     1-ul   1-ur   1-ll   1-lr   2-ul   2-ur        2-ll              2-lr
@@ -521,7 +533,7 @@ function [new_size, origin] = get_combined_size(img1, img2, H)
     minyis = find(ys==miny);
     [maxy, ~] = max(ys);
     maxyis = find(ys==maxy);
-    
+
     new_size = [uint32(maxy-miny), uint32(maxx-minx), 3];
     if(isempty(intersect(minxis, minyis)) == 0)
         origin = [-minx, -miny];
@@ -531,6 +543,8 @@ function [new_size, origin] = get_combined_size(img1, img2, H)
         origin = [double(new_size(2)) - maxx, -miny];
     elseif(isempty(intersect(maxxis, maxyis)) == 0)
         origin = [double(new_size(2)) - maxx, double(new_size(1)) - maxy];
+    elseif(isempty(intersect(minxis, minyis)) == 0)
+        origin = [-minx, -miny];
     else
         fprintf('Error finding origin, Non linear transform!??!?!?\n');
         return
@@ -594,9 +608,10 @@ function merged_img = merge_images(img1, img2, H, new_size, origin, interpolatio
                 % going to do simple alpha blending with alpha = .5
 
                 % if point is between locations then interpolate
-                new_val = interpolation_function(img1, domain_point)/2;
+                alpha = .5;
+                new_val = interpolation_function(img1, domain_point)*alpha;
                 % range values should not need interpolation as x,y and origin are integers
-                new_val = new_val + img2(range_point(2), range_point(1), :)/2;
+                new_val = new_val + img2(range_point(2), range_point(1), :)*(1-alpha);
             elseif(in_domain)
                 % if location is in our left image and not in right just take left
                 % if point is between locations then interpolate
@@ -659,3 +674,13 @@ function value = fast_interp(img, loc)
     loc(loc == 0) = 1;
     value = img(loc(2), loc(1), :);
 end
+
+
+% Computes Gaussian Filter
+function f=gaussian_filter(n,s)
+    x = -1/2:1/(n-1):1/2;
+    [Y,X] = meshgrid(x,x);
+    f = exp( -(X.^2+Y.^2)/(2*s^2) );
+    f = f / sum(f(:));
+end
+

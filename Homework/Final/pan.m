@@ -96,9 +96,9 @@ imshow(img_out);
 img1_key_point_correspondences = [];
 img2_key_point_correspondences = [];
 for i = 1:size(key_point_correspondences,1)
-    if abs(img1_key_points(key_point_correspondences(i,1),2) - img2_key_points(key_point_correspondences(i,2),2)) < 10
+    if abs(img1_key_points(key_point_correspondences(i,1),2) - img2_key_points(key_point_correspondences(i,2),2)) < .05*size(img1, 1)
         img1_key_point_correspondences(end+1, :) = img1_key_points(key_point_correspondences(i,1),:);
-        img2_key_point_correspondences(end+1, :) = img2_key_points(key_point_correspondences(i,2),:);    
+        img2_key_point_correspondences(end+1, :) = img2_key_points(key_point_correspondences(i,2),:);
         draw_line(img1_key_point_correspondences(end,:), img2_key_point_correspondences(end,:), size(img1,2));
     end
 end
