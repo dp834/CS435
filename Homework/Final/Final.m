@@ -26,6 +26,7 @@ im2 = imread(image_2_location);
 
 
 
+
 %% Question 1 - Hard Coding Point Correspondences
 
 % Define hardcoded point correspondences (source -> target)
@@ -71,14 +72,12 @@ img2_scale_space = compute_scale_space(im2);
 fprintf('Starting DoG/maxima img1\n');
 img1_DoG = compute_dog(img1_scale_space);
 img1_local_maxima = compute_local_maxima(im1, img1_DoG);
-img1_local_maxima_coords = convert_matrix_to_coords(img1_local_maxima);
-draw_extrema_points(img1_local_maxima_coords, im1, 'final_all_extrema_left.png');
+draw_extrema_points(img1_local_maxima, im1, 'final_all_extrema_left.png');
 
 fprintf('Starting DoG/maxima img2\n');
 img2_DoG = compute_dog(img2_scale_space);
 img2_local_maxima = compute_local_maxima(im2, img2_DoG);
-img2_local_maxima_coords = convert_matrix_to_coords(img2_local_maxima);
-draw_extrema_points(img2_local_maxima_coords, im2, 'final_all_extrema_right.png');
+draw_extrema_points(img2_local_maxima, im2, 'final_all_extrema_right.png');
 
 fprintf('Starting pruning, rest is fast\n');
 img1_key_points = prune_unstable_maxima(im1, img1_local_maxima);
@@ -162,10 +161,10 @@ function mark_hardcoded_points(im1, im2, source_pts, target_pts)
 
     % Draw circles at all point correspondences
     for i=1:size(source_pts,1)
-        draw_circle(source_pts(i,1),source_pts(i,2),25,colors(i),1);
+        draw_circle(source_pts(i,1),source_pts(i,2),1,colors(i),1);
     end
     for i=1:size(target_pts,1)
-        draw_circle(target_pts(i,1)+size(im1,2),target_pts(i,2),25,colors(i),1);
+        draw_circle(target_pts(i,1)+size(im1,2),target_pts(i,2),1,colors(i),1);
     end
 
     % Save image
@@ -293,14 +292,23 @@ end
 
 
 % Draw circles at extrema
-function draw_extrema_points(coords, img, fname)
+function draw_extrema_points(mat, img, fname)
     global OUTPUT_LOCATION_PREFIX
-    imshow(img);
-    for i=1:size(coords,1)
-       draw_circle(coords(i,1), coords(i,2), 5, 'r', 0);
-    end
+    [x,y] = find(mat==1);
+    imshow(uint8(img));
+    radius=0.5;
+    hold on;
+    for k=1:size(x,1)
+        theta=0:0.01:2*pi; 
+        xval=radius*cos(theta);
+        yval=radius*sin(theta);
+        plot(y(k)+xval,x(k)+yval, 'r');
+    end 
+    hold off;
+    fig = gcf;
+    fig.PaperPositionMode = 'auto';
     saveas(gcf, strcat(OUTPUT_LOCATION_PREFIX, fname));
-    close(gcf);
+    close(figure);
 end
 
 
@@ -389,8 +397,10 @@ function draw_point_correspondences(im1, im2, source_pts, target_pts, fname)
     for i=1:size(source_pts,1)
         draw_line(source_pts(i,:), target_pts(i,:), size(im1,2));
     end
+    fig = gcf;
+    fig.PaperPositionMode = 'auto';
     saveas(gcf, strcat(OUTPUT_LOCATION_PREFIX, fname));
-    close(gcf);
+    close(figure);
 end
 
 
