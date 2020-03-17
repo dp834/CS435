@@ -19,9 +19,9 @@ delete('images/generated/*');
 fprintf('Cleaned "images/generated"\n');
 
 % Read images
-image_1_location = 'images/img1.jpg';
+image_1_location = 'images/im1.jpg';
 im1 = imread(image_1_location);
-image_2_location = 'images/img2.jpg';
+image_2_location = 'images/im2.jpg';
 im2 = imread(image_2_location);
 
 
@@ -80,8 +80,8 @@ img2_local_maxima = compute_local_maxima(im2, img2_DoG);
 draw_extrema_points(img2_local_maxima, im2, 'final_all_extrema_right.png');
 
 fprintf('Starting pruning, rest is fast\n');
-img1_key_points = prune_unstable_maxima(im1, img1_local_maxima);
-img2_key_points = prune_unstable_maxima(im2, img2_local_maxima);
+img1_key_points = prune_unstable_maxima(im1, img1_local_maxima, 60);
+img2_key_points = prune_unstable_maxima(im2, img2_local_maxima, 60);
 draw_extrema_points(img1_key_points, im1, 'final_pruned_extrema_left.png');
 draw_extrema_points(img2_key_points, im2, 'final_pruned_extrema_right.png');
 
@@ -185,10 +185,10 @@ function mark_hardcoded_points(im1, im2, source_pts, target_pts)
 
     % Draw circles at all point correspondences
     for i=1:size(source_pts,1)
-        draw_circle(source_pts(i,1),source_pts(i,2),1,colors(i),1);
+        draw_circle(source_pts(i,1),source_pts(i,2),25,colors(i),1);
     end
     for i=1:size(target_pts,1)
-        draw_circle(target_pts(i,1)+size(im1,2),target_pts(i,2),1,colors(i),1);
+        draw_circle(target_pts(i,1)+size(im1,2),target_pts(i,2),25,colors(i),1);
     end
 
     % Save image
@@ -334,7 +334,7 @@ function draw_extrema_points(mat, img, fname)
 end
 
 
-function key_points = prune_unstable_maxima(img, candidates)
+function key_points = prune_unstable_maxima(img, candidates,threshold)
     % Compute Edge Pixels
     edge_points = edge(rgb2gray(img));
 
@@ -342,7 +342,7 @@ function key_points = prune_unstable_maxima(img, candidates)
     % So a WIDTH of 4 will be a 9x9 patch
     WIDTH = 4;
     % Since i will be adding each color channel divide by 3
-    CONTRAST_THRESH = 60*3;
+    CONTRAST_THRESH = threshold*3;
 
     % Remove all points that are too close to the edge to get a contrast reading
     candidates(1:WIDTH,:) = 0;
@@ -410,9 +410,10 @@ function draw_point_correspondences(im1, im2, source_pts, target_pts, fname)
 
     height_pad = size(im1, 1) - size(im2, 1);
     if(height_pad < 0)
-        im1(end:end-height_pad, :,:) = zeros([-height_pad, size(im1,2), size(im1,3)]);
+        height_pad
+        im1(end+1:end+abs(height_pad), :,:) = zeros([abs(height_pad), size(im1,2), size(im1,3)]);
     elseif(height_pad > 0)
-        im2(end:end+height_pad, :,:) = zeros([height_pad, size(im2,2), size(im2,3)]);
+        im2(end+1:end+height_pad, :,:) = zeros([height_pad, size(im2,2), size(im2,3)]);
     end
 
     imshow([im1 im2]);
@@ -751,8 +752,8 @@ function [img1_points, img2_points] = get_key_point_correspondeces(img1, img2)
     img2_DoG = compute_dog(img2_scale_space);
     img2_local_maxima = compute_local_maxima(img2, img2_DoG);
 
-    img1_key_points = prune_unstable_maxima(img1, img1_local_maxima);
-    img2_key_points = prune_unstable_maxima(img2, img2_local_maxima);
+    img1_key_points = prune_unstable_maxima(img1, img1_local_maxima, 0);
+    img2_key_points = prune_unstable_maxima(img2, img2_local_maxima, 0);
 
     % Find matching keypoints: For each keypoint compute a feature vector and look for a match in the other set of keypoints
     img1_feature_vectors = get_features_from_key_points(img1, img1_key_points);
