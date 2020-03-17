@@ -72,12 +72,14 @@ img2_scale_space = compute_scale_space(im2);
 fprintf('Starting DoG/maxima img1\n');
 img1_DoG = compute_dog(img1_scale_space);
 img1_local_maxima = compute_local_maxima(im1, img1_DoG);
-draw_extrema_points(img1_local_maxima, im1, 'final_all_extrema_left.png');
+[x1,y1] = find(img1_local_maxima==1);
+draw_extrema_points(x1, y1, im1, 'final_all_extrema_left.png');
 
 fprintf('Starting DoG/maxima img2\n');
 img2_DoG = compute_dog(img2_scale_space);
 img2_local_maxima = compute_local_maxima(im2, img2_DoG);
-draw_extrema_points(img2_local_maxima, im2, 'final_all_extrema_right.png');
+[x2,y2] = find(img2_local_maxima==1);
+draw_extrema_points(x2, y2, im2, 'final_all_extrema_right.png');
 
 fprintf('Starting pruning, rest is fast\n');
 img1_key_points = prune_unstable_maxima(im1, img1_local_maxima, 60);
@@ -316,9 +318,8 @@ end
 
 
 % Draw circles at extrema
-function draw_extrema_points(mat, img, fname)
+function draw_extrema_points(x, y, img, fname)
     global OUTPUT_LOCATION_PREFIX
-    [x,y] = find(mat==1);
     imshow(uint8(img));
     radius=0.5;
     hold on;
@@ -780,7 +781,7 @@ function [img1_points, img2_points] = get_key_point_correspondeces(img1, img2)
     img2_key_point_correspondences = [];
     for i = 1:size(key_point_correspondences,1)
         if abs(img1_key_points(key_point_correspondences(i,1),2) - img2_key_points(key_point_correspondences(i,2),2)) < .10*size(img1, 1)
-            if (size(img1,2) - img1_key_points(key_point_correspondences(i,1),1) + img2_key_points(key_point_correspondences(i,2),1)) < (size(img1,2) + size(img2, 2))/2
+            if (size(img1,2) - img1_key_points(key_point_correspondences(i,1),1) + img2_key_points(key_point_correspondences(i,2),1)) < (0.9*(size(img1,2) + size(img2, 2)))
                 img1_key_point_correspondences(end+1, :) = img1_key_points(key_point_correspondences(i,1),:);
                 img2_key_point_correspondences(end+1, :) = img2_key_points(key_point_correspondences(i,2),:);
             end
