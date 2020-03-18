@@ -72,20 +72,21 @@ img2_scale_space = compute_scale_space(im2);
 fprintf('Starting DoG/maxima img1\n');
 img1_DoG = compute_dog(img1_scale_space);
 img1_local_maxima = compute_local_maxima(im1, img1_DoG);
-[x1,y1] = find(img1_local_maxima==1);
-draw_extrema_points(x1, y1, im1, 'final_all_extrema_left.png');
+[y1,x1] = find(img1_local_maxima==1);
+draw_extrema_points(x1, y1, im1, 'final_all_extrema_left.png',.5);
 
 fprintf('Starting DoG/maxima img2\n');
 img2_DoG = compute_dog(img2_scale_space);
 img2_local_maxima = compute_local_maxima(im2, img2_DoG);
-[x2,y2] = find(img2_local_maxima==1);
-draw_extrema_points(x2, y2, im2, 'final_all_extrema_right.png');
+[y2,x2] = find(img2_local_maxima==1);
+draw_extrema_points(x2, y2, im2, 'final_all_extrema_right.png',.5);
 
+%%
 fprintf('Starting pruning, rest is fast\n');
-img1_key_points = prune_unstable_maxima(im1, img1_local_maxima, 60);
-img2_key_points = prune_unstable_maxima(im2, img2_local_maxima, 60);
-draw_extrema_points(img1_key_points, im1, 'final_pruned_extrema_left.png');
-draw_extrema_points(img2_key_points, im2, 'final_pruned_extrema_right.png');
+img1_key_points = prune_unstable_maxima(im1, img1_local_maxima, 70);
+img2_key_points = prune_unstable_maxima(im2, img2_local_maxima, 70);
+draw_extrema_points(img1_key_points(:,1), img1_key_points(:,2), im1, 'final_pruned_extrema_left.png', 10);
+draw_extrema_points(img2_key_points(:,1), img2_key_points(:,2), im2, 'final_pruned_extrema_right.png', 10);
 
 
 
@@ -139,28 +140,28 @@ automatic_stitched_image = stitch_images(im1, im2, img1_points, img2_points, @li
 imwrite(automatic_stitched_image, strcat(OUTPUT_LOCATION_PREFIX, 'final_automatic_stitched.png'));
 
 %% Extra credit stitch multiple images, this is slow sorry
-imgs = {'images/7.jpg', 'images/6.jpg', 'images/5.jpg', 'images/4.jpg', 'images/3.jpg', 'images/2.jpg', 'images/1.jpg', 'images/0.jpg'};
-for i = 1:size(imgs,2)
-    imgs{i} = imread(imgs{i});
-end
-img_left  = [];
-img_right = imgs{1};
+ imgs = {'images/7.jpg', 'images/6.jpg', 'images/5.jpg', 'images/4.jpg', 'images/3.jpg', 'images/2.jpg', 'images/1.jpg', 'images/0.jpg'};
+ for i = 1:size(imgs,2)
+     imgs{i} = int16(imread(imgs{i}));
+ end
+ img_left  = [];
+ img_right = imgs{1};
+ 
+ for i = 2:size(imgs,2)
+     img_left  = img_right;
+     img_right = imgs{i};
+ 
+     [left_key_points, right_key_points] = get_key_point_correspondeces(img_left,img_right);
+     H = compute_transformation_matrix(left_key_points, right_key_points);
+     [new_image_size, origin] = get_combined_size(img_left, img_right, H);
+ 
+     % Save to img_right so that the loop will work
+     img_right = merge_images_multipass(img_left, img_right, H, new_image_size, origin, @fast_interp);
+ end
 
-for i = 2:size(imgs,2)
-    img_left  = img_right;
-    img_right = imgs{i};
-
-    [left_key_points, right_key_points] = get_key_point_correspondeces(img_left,img_right);
-    H = compute_transformation_matrix(left_key_points, right_key_points);
-    [new_image_size, origin] = get_combined_size(img_left, img_right, H);
-
-    % Save to img_right so that the loop will work
-    img_right = merge_images_multipass(img_left, img_right, H, new_image_size, origin, @fast_interp);
-end
-%
 
 img_right(img_right == -1) = 0;
-cool_img = img_right;
+cool_img = uint8(img_right);
 imshow(cool_img);
 
 % Functions
@@ -233,7 +234,7 @@ function scale_space = compute_scale_space(im)
             gauss_kernel = gaussian_filter(ceil(3*sigma), sigma);
             smoothed_gray = conv2(img, gauss_kernel, 'same');
             scale_space{octave, scale} = uint8(smoothed_gray);
-            sigma = sigma * sqrt(2);
+            %sigma = sigma * sqrt(2);
         end
         img = img(1:REDUCTION_FACTOR:end, 1:REDUCTION_FACTOR:end, :);
     end
@@ -300,7 +301,12 @@ function output_img = compute_local_maxima(img, DoG)
                 for z = 2:size(DoG_octave,3)-1
                     % Look at the cube around the point and if it's the max then we mark it as a max
                     if(3*3+5 == find(DoG_octave(y-1:y+1,x-1:x+1,z-1:z+1) == max(DoG_octave(y-1:y+1,x-1:x+1,z-1:z+1), [], 'all')))
-                        output_img((y-1)*(scale_factor-1)+1, (x-1)*(scale_factor-1)+1) = 1;
+                        x_coord = (x-1)*scale_factor;
+                        y_coord = (y-1)*scale_factor;
+                        if(x_coord > size(img,2) || y_coord > size(img,1))
+                            continue
+                        end
+                        output_img(y_coord, x_coord) = 1;
                     end
                 end
             end
@@ -318,16 +324,15 @@ end
 
 
 % Draw circles at extrema
-function draw_extrema_points(x, y, img, fname)
+function draw_extrema_points(x, y, img, fname, radius)
     global OUTPUT_LOCATION_PREFIX
     imshow(uint8(img));
-    radius=0.5;
     hold on;
+    theta=0:0.01:2*pi;
+    xval=radius*cos(theta);
+    yval=radius*sin(theta);
     for k=1:size(x,1)
-        theta=0:0.01:2*pi;
-        xval=radius*cos(theta);
-        yval=radius*sin(theta);
-        plot(y(k)+xval,x(k)+yval, 'r');
+        plot(double(x(k))+xval,double(y(k))+yval, 'r');
     end
     hold off;
     saveas(gcf, strcat(OUTPUT_LOCATION_PREFIX, fname));
@@ -411,7 +416,6 @@ function draw_point_correspondences(im1, im2, source_pts, target_pts, fname)
 
     height_pad = size(im1, 1) - size(im2, 1);
     if(height_pad < 0)
-        height_pad
         im1(end+1:end+abs(height_pad), :,:) = zeros([abs(height_pad), size(im1,2), size(im1,3)]);
     elseif(height_pad > 0)
         im2(end+1:end+height_pad, :,:) = zeros([height_pad, size(im2,2), size(im2,3)]);
@@ -558,42 +562,12 @@ function [new_size, origin] = get_combined_size(img1, img2, H)
     ys = [ys(1), ys(2), ys(3), xs(4),  1,             1, size(img2,1), size(img2, 1)];
 
     [minx, ~] = min(xs);
-    minxis = find(xs==minx);
     [maxx, ~] = max(xs);
-    maxxis = find(xs==maxx);
     [miny, ~] = min(ys);
-    minyis = find(ys==miny);
     [maxy, ~] = max(ys);
-    maxyis = find(ys==maxy);
 
     new_size = [uint32(maxy-miny), uint32(maxx-minx), 3];
-    if(isempty(intersect(minxis, minyis)) == 0)
-        origin = [-minx, -miny];
-    elseif(isempty(intersect(minxis, maxyis)) == 0)
-        origin = [-minx, double(new_size(1)) - maxy];
-    elseif(isempty(intersect(maxxis, minyis)) == 0)
-        origin = [double(new_size(2)) - maxx, -miny];
-    elseif(isempty(intersect(maxxis, maxyis)) == 0)
-        origin = [double(new_size(2)) - maxx, double(new_size(1)) - maxy];
-    elseif(isempty(intersect(minxis, minyis)) == 0)
-        origin = [-minx, -miny];
-    else
-        fprintf('Error finding origin, Non linear transform!??!?!?\n');
-        return
-    end
-
-%{
-    % Can be shorter 100% TODO rewrite
-    if(xs(1) < xs(2) && xs(1) < xs(3) && xs(1) < xs(4) && ys(1) < ys(2) && ys(1) < ys(3) && ys(1) < ys(4))    %if the upper left corner is staying in the corner then the the origin is at the coordinate
-        origin = [-xs(1), -ys(1)];
-    elseif(xs(2) < xs(3) && xs(2) < xs(4) && ys(2) > ys(1) && ys(2) > ys(3) && ys(2) > ys(4))
-        origin = [-xs(1), new_size(2) - ys(1)];
-    elseif(xs(2) < xs(3) && xs(2) < xs(4) && ys(3) < ys(1) && ys(3) < ys(2) && ys(3) < ys(4))
-        origin = [new_size(1) - xs(3), ys(3)];
-    else
-        origin = [new_size(1) - xs(4), new_size(2) - ys(4)];
-    end
-%}
+    origin = [-minx, -miny];
     origin = ceil(origin);
 end
 
@@ -753,8 +727,8 @@ function [img1_points, img2_points] = get_key_point_correspondeces(img1, img2)
     img2_DoG = compute_dog(img2_scale_space);
     img2_local_maxima = compute_local_maxima(img2, img2_DoG);
 
-    img1_key_points = prune_unstable_maxima(img1, img1_local_maxima, 0);
-    img2_key_points = prune_unstable_maxima(img2, img2_local_maxima, 0);
+    img1_key_points = prune_unstable_maxima(img1, img1_local_maxima, 50);
+    img2_key_points = prune_unstable_maxima(img2, img2_local_maxima, 50);
 
     % Find matching keypoints: For each keypoint compute a feature vector and look for a match in the other set of keypoints
     img1_feature_vectors = get_features_from_key_points(img1, img1_key_points);
@@ -780,21 +754,21 @@ function [img1_points, img2_points] = get_key_point_correspondeces(img1, img2)
     img1_key_point_correspondences = [];
     img2_key_point_correspondences = [];
     for i = 1:size(key_point_correspondences,1)
-        if abs(img1_key_points(key_point_correspondences(i,1),2) - img2_key_points(key_point_correspondences(i,2),2)) < .10*size(img1, 1)
-            if (size(img1,2) - img1_key_points(key_point_correspondences(i,1),1) + img2_key_points(key_point_correspondences(i,2),1)) < (0.9*(size(img1,2) + size(img2, 2)))
-                img1_key_point_correspondences(end+1, :) = img1_key_points(key_point_correspondences(i,1),:);
-                img2_key_point_correspondences(end+1, :) = img2_key_points(key_point_correspondences(i,2),:);
-            end
+        if (size(img1,2) - img1_key_points(key_point_correspondences(i,1),1) + img2_key_points(key_point_correspondences(i,2),1)) < (0.9*size(img2, 2))
+            img1_key_point_correspondences(end+1, :) = img1_key_points(key_point_correspondences(i,1),:);
+            img2_key_point_correspondences(end+1, :) = img2_key_points(key_point_correspondences(i,2),:);
         end
     end
-    draw_point_correspondences(img1, img2, img1_key_point_correspondences, img2_key_point_correspondences, 'asdfsadf.png');
+    draw_point_correspondences(uint8(img1), uint8(img2), img1_key_point_correspondences, img2_key_point_correspondences, 'asdfsadf.png');
 
     [img1_points, img2_points] = ransac(img1_key_point_correspondences, img2_key_point_correspondences, log(1-.9)/log(1-.05^4));
+    draw_point_correspondences(uint8(img1), uint8(img2), img1_points, img2_points, 'asdfsadf.png');
+
 end
 
 function merged_img = merge_images_multipass(img1, img2, H, new_size, origin, interpolation_function)
     % create output matrix
-    merged_img = uint8(zeros(new_size));
+    merged_img = int16(zeros(new_size));
     origin = double(origin);
 
     % get our inverse transformation
