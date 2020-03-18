@@ -50,9 +50,6 @@ mark_hardcoded_points(im1, im2, source, target)
 % Stitch images together using hardcoded point correspondences (source -> target)
 hardcoded_stitched_image = stitch_images(im1, im2, source, target, @linear_interpolation);
 imwrite(hardcoded_stitched_image, strcat(OUTPUT_LOCATION_PREFIX, 'final_manual_stitched.png'));
-%stitched_image = stitch_images(right_img, left_img, target, source, @linear_interpolation);
-%stitched_image = stitch_images(left_img, right_img, source, target, @fast_interp);
-%stitched_image = stitch_images(right_img, left_img, target, source, @fast_interp);
 
 
 
@@ -156,13 +153,14 @@ imwrite(automatic_stitched_image, strcat(OUTPUT_LOCATION_PREFIX, 'final_automati
      [new_image_size, origin] = get_combined_size(img_left, img_right, H);
  
      % Save to img_right so that the loop will work
-     img_right = merge_images_multipass(img_left, img_right, H, new_image_size, origin, @fast_interp);
+     img_right = merge_images_multipass(img_left, img_right, H, new_image_size, origin, @linear_interpolation);
  end
 
 
 img_right(img_right == -1) = 0;
 cool_img = uint8(img_right);
-imshow(cool_img);
+stitched_cropped = cool_img(any(cool_img,[2 3]),:, :);
+imwrite(stitched_cropped, strcat(OUTPUT_LOCATION_PREFIX, 'final_multiple_images_stitched.png'));
 
 % Functions
 
