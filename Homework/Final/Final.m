@@ -25,6 +25,12 @@ image_2_location = 'images/im2.jpg';
 im2 = imread(image_2_location);
 
 
+% % To run just the stitching, set your filenames above and uncomment the code below
+% images_to_stitch = {image_1_location, image_2_location};
+% stitched_panorama = stitch_images_full(images_to_stitch);
+% imshow(stitched_panorama);
+
+
 
 
 %% Question 1 - Hard Coding Point Correspondences
@@ -136,7 +142,7 @@ draw_point_correspondences(im1, im2, img1_points, img2_points, 'final_selected_p
 automatic_stitched_image = stitch_images(im1, im2, img1_points, img2_points, @linear_interpolation);
 imwrite(automatic_stitched_image, strcat(OUTPUT_LOCATION_PREFIX, 'final_automatic_stitched.png'));
 
-%% Extra credit stitch multiple images, this is slow sorry
+%% Extra credit stitch multiple images, this is slow sorry. Didn't get to optimize.
  imgs = {'images/7.jpg', 'images/6.jpg', 'images/5.jpg', 'images/4.jpg', 'images/3.jpg', 'images/2.jpg', 'images/1.jpg', 'images/0.jpg'};
  for i = 1:size(imgs,2)
      imgs{i} = int16(imread(imgs{i}));
@@ -164,7 +170,29 @@ imwrite(stitched_cropped, strcat(OUTPUT_LOCATION_PREFIX, 'final_multiple_images_
 
 % Functions
 
+function cool_img = stitch_images_full(imgs)
+    for i = 1:size(imgs,2)
+         imgs{i} = int16(imread(imgs{i}));
+     end
+     img_left  = [];
+     img_right = imgs{1};
 
+     for i = 2:size(imgs,2)
+         img_left  = img_right;
+         img_right = imgs{i};
+
+         [left_key_points, right_key_points] = get_key_point_correspondeces(img_left,img_right);
+         H = compute_transformation_matrix(left_key_points, right_key_points);
+         [new_image_size, origin] = get_combined_size(img_left, img_right, H);
+
+         % Save to img_right so that the loop will work
+         img_right = merge_images_multipass(img_left, img_right, H, new_image_size, origin, @fast_interp);
+     end
+
+
+    img_right(img_right == -1) = 0;
+    cool_img = uint8(img_right);
+end
 
 % Problem 1 Functions
 
@@ -613,13 +641,13 @@ function merged_img = merge_images(img1, img2, H, new_size, origin, interpolatio
 
                 % if point is between locations then interpolate
                 alpha = .5;
-                new_val = interpolation_function(img1, domain_point)*alpha;
+                new_val = uint8(interpolation_function(img1, domain_point))*alpha;
                 % range values should not need interpolation as x,y and origin are integers
                 new_val = new_val + img2(range_point(2), range_point(1), :)*(1-alpha);
             elseif(in_domain)
                 % if location is in our left image and not in right just take left
                 % if point is between locations then interpolate
-                new_val = interpolation_function(img1, domain_point);
+                new_val = uint8(interpolation_function(img1, domain_point));
             elseif(in_range)
                 % if location is in our right image and not in left just take right
                 % range values should not need interpolation as x,y and origin are integers
@@ -678,7 +706,6 @@ function value = linear_interpolation(img, loc)
         tmp = (distances(i)/sum(distances)) * img(sample_points(i,2), sample_points(i,1),:);
         value = value + double(tmp);
     end
-    value = int16(value);
 end
 
 function value = fast_interp(img, loc)
@@ -807,7 +834,7 @@ function merged_img = merge_images_multipass(img1, img2, H, new_size, origin, in
 
                 % if point is between locations then interpolate
                 alpha = .5;
-                domain_val = interpolation_function(img1, domain_point);
+                domain_val = int16(interpolation_function(img1, domain_point));
                 if(domain_val < 0)
                    alpha = 0; 
                 end
@@ -825,7 +852,7 @@ function merged_img = merge_images_multipass(img1, img2, H, new_size, origin, in
             elseif(in_domain)
                 % if location is in our left image and not in right just take left
                 % if point is between locations then interpolate
-                new_val = interpolation_function(img1, domain_point);
+                new_val = int16(interpolation_function(img1, domain_point));
                 if(sum(new_val < 0, 'all')>0)
                    new_val = EMPTY_PIXEL; 
                 end
