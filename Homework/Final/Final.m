@@ -652,26 +652,34 @@ end
 % Linear Interpolation Functions
 
 function value = linear_interpolation(img, loc)
-     sample_points = [floor(loc(1)) floor(loc(2)) ;
+    possible_points = [floor(loc(1)) floor(loc(2)) ;
                       floor(loc(1)) ceil(loc(2) ) ;
                       ceil(loc(1) ) floor(loc(2)) ;
                       ceil(loc(1) ) ceil(loc(2) )];
+    sample_points = [];
+    for i = 1:size(possible_points,1)
+       if(isequal(img(possible_points(i,2), possible_points(i,1), :), [-1,-1,-1]) == 0)
+           sample_points(end+1, :) = possible_points(i,:);
+       end
+    end
+    if(isequal(sample_points, []))
+        value = [-1, -1, -1];
+        return
+    end
+    % find distance of each point from target point
+    distances = abs(sample_points - [loc(1) loc(2)]);
+    distances = distances .* distances;
+    distances = distances(:,1) + distances(:,2);
+    distances = arrayfun(@(x) sqrt(x), distances);
 
-     % find distance of each point from target point
-     distances = abs(sample_points - [loc(1) loc(2)]);
-     distances = distances .* distances;
-     distances = distances(:,1) + distances(:,2);
-     distances = arrayfun(@(x) sqrt(x), distances);
-
-     value = double(zeros(1,1,3));
-     % compute weighted sum for linear interpolation of all channels at once
-     for i = 1:size(sample_points, 1)
-         tmp = (distances(i)/sum(distances)) * img(sample_points(i,2), sample_points(i,1),:);
-         value = value + double(tmp);
-     end
-     value = uint8(value);
+    value = double(zeros(1,1,3));
+    % compute weighted sum for linear interpolation of all channels at once
+    for i = 1:size(sample_points, 1)
+        tmp = (distances(i)/sum(distances)) * img(sample_points(i,2), sample_points(i,1),:);
+        value = value + double(tmp);
+    end
+    value = int16(value);
 end
-
 
 function value = fast_interp(img, loc)
     loc = floor(loc);
